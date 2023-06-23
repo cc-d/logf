@@ -15,6 +15,24 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Callable[..., Any])
 
+
+def trunc_str(string: str, max_length: int) -> str:
+    """
+    Truncates a string if its length exceeds the specified maximum length.
+    If the string is truncated, it appends '...' to indicate the truncation.
+
+    Args:
+        string (str): The string to truncate.
+        max_length (int): The maximum length of the truncated string.
+
+    Returns:
+        str: The truncated string.
+    """
+    if len(string) > max_length:
+        return string[:max_length - 3] + "..."
+    return string
+
+
 def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
