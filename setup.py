@@ -1,19 +1,19 @@
-
 from setuptools import setup, find_packages
 
-
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name='logfunc',
-    version='1.0.2',
+    version='1.0.3',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
     author_email='ccarterdev@gmail.com',
-    description='A function decorator/wrapper which allows for logging of args, kwargs, execution time, return value, etc of a func',
-    long_description=open('README.md').read(),
+    description='An EASY TO USE function decorator for advanced logging of function execution, including arguments, return values, and execution time.',
+    long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/cc-d/myfuncs',
+    url='https://github.com/cc-d/logf/tree/main',
     license='MIT',
 
     classifiers=[
@@ -28,4 +28,3 @@ setup(
         'Programming Language :: Python :: 3.10',
     ],
 )
-
