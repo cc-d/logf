@@ -14,8 +14,10 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Callable[..., Any])
 
+TRUNC_STR_LEN = 1000
 
-def trunc_str(string: str, max_length: Optional[int] = 1000) -> str:
+
+def trunc_str(string: str, max_length: Optional[int] = TRUNC_STR_LEN) -> str:
     """
     Truncates a string if its length exceeds the specified maximum length.
     If the string is truncated, it appends '...' to indicate the truncation. If
@@ -40,7 +42,7 @@ def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
     log_return: bool = True,
-    max_str_len: Optional[int] = 1000,
+    max_str_len: Optional[int] = TRUNC_STR_LEN,
     log_exec_time: bool = True,
     **kwargs
 ) -> Callable[[T], T]:
