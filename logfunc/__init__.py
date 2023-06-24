@@ -15,20 +15,24 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Callable[..., Any])
 
 
-def trunc_str(string: str, max_length: int) -> str:
+def trunc_str(string: str, max_length: Optional[int] = 1000) -> str:
     """
     Truncates a string if its length exceeds the specified maximum length.
-    If the string is truncated, it appends '...' to indicate the truncation.
+    If the string is truncated, it appends '...' to indicate the truncation. If
+    no max_length is specified, the string is returned as-is.
 
     Args:
         string (str): The string to truncate.
-        max_length (int): The maximum length of the truncated string.
+        max_length (int): The maximum length of the truncated string. Defaults to 1000.
 
     Returns:
         str: The truncated string.
     """
+    if max_length is None: # None was explictly passed as an arg, return str as-is
+        return string
+
     if len(string) > max_length:
-        return string[:max_length - 3] + "..."
+        return string[:max_length - 3] + '...'
     return string
 
 
@@ -36,8 +40,9 @@ def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
     log_return: bool = True,
-    max_str_len: int = 1000,
-    measure_time: bool = True
+    max_str_len: Optional[int] = 1000,
+    log_exec_time: bool = True,
+    **kwargs
 ) -> Callable[[T], T]:
     """
     A decorator that logs the execution time, function name, arguments, keyword arguments,
@@ -47,8 +52,8 @@ def logf(
         level (Union[int, str], optional): The log level to use for logging. Defaults to logging.DEBUG.
         log_args (bool, optional): Should the function arguments be logged? Defaults to True.
         log_return (bool, optional): Should function return be logged? Defaults to True.
-        max_str_len (int, optional): Maximum length of the logged arguments and return values. Defaults to 1000.
-        measure_time (bool, optional): Should the function execution time be measured? Defaults to True.
+        max_str_len (Optional[int]): Maximum length of the logged arguments and return values. Defaults to 1000.
+        log_exec_time (bool, optional): Should the function execution time be measured? Defaults to True.
 
     Returns:
         Callable[[T], T]: The wrapped function.
@@ -58,44 +63,44 @@ def logf(
     else:
         level_int = int(level)
 
+    # for backwards compatability, override log_exec_time using
+    # the measure_time kwarg if present
+    if 'measure_time' in kwargs:
+        log_exec_time = kwargs['measure_time']
+
     def decorator(func: T) -> T:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def wrapper(*args, **kwargs):
             # Start the timer if required and execute the function.
-            start_time = time.time() if measure_time else None
+            start_time = time.time() if log_exec_time else None
+
+            fname = f'{func.__name__}()' # shorthand reference
 
             # Log function arguments if required
             if log_args:
-                arg_str = f"{func.__name__}() | {str(args)[:max_str_len]} {str(kwargs)[:max_str_len]}"
+                argstr = f'{trunc_str(str(args), max_str_len)} {trunc_str(str(kwargs), max_str_len)}'
+                logmsg_enter = f'{fname} | {argstr}'
             else:
-                arg_str = f"{func.__name__}()"
+                logmsg_enter = fname # only log function name on entry
 
-            logger.log(level_int, arg_str)
+            logger.log(level_int, logmsg_enter)
 
             # Execute the function
             result = func(*args, **kwargs)
 
-            if measure_time:
-                end_time = time.time()
-                # Calculate the execution time and format the log message.
-                exec_time = end_time - start_time
-                exec_time_str = f"{exec_time:.5f}s"
+            # include execution time if log_exec_time=True
+            if log_exec_time:
+                exec_time = time.time() - start_time
+                logmsg_exit = f'{fname} {exec_time:.5f}s'
+            else:
+                logmsg_exit = fname # only use func name
+
+            # if log_return=True include returned obj str in logmsg
+            if log_return:
+                logmsg_exit = f'{logmsg_exit} | {trunc_str(str(result), max_str_len)}'
 
             # Log the return value and execution time if required
-            if log_return and measure_time:
-                result_str = trunc_str(str(result), max_str_len)
-                log_message = f"{func.__name__}() {exec_time_str} | {result_str}"
-            elif log_return:
-                result_str = trunc_str(str(result), max_str_len)
-                log_message = f"{func.__name__}() | {result_str}"
-            elif measure_time:
-                log_message = f"{func.__name__}() {exec_time_str}"
-            else:
-                log_message = None
-
-            if log_message is not None:
-                # Log the message using the specified level.
-                logger.log(level_int, log_message)
+            logger.log(level_int, logmsg_exit)
 
             return result
         return wrapper
