@@ -11,7 +11,7 @@ Here is a brief guide on how to use the `logfunc` module.
 First, you need to install the `logfunc` package. This can be done through pip:
 
 ```sh
-pip install myfuncs
+pip install logf
 ```
 
 ### Importing
