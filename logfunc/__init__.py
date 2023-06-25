@@ -44,6 +44,7 @@ def logf(
     log_return: bool = True,
     max_str_len: Optional[int] = TRUNC_STR_LEN,
     log_exec_time: bool = True,
+    single_msg: bool = False,
     **kwargs
 ) -> Callable[..., Callable[..., Any]]:
     """
@@ -51,14 +52,15 @@ def logf(
     and return value of a function using a specified log level.
 
     Args:
-        level (Union[int, str], optional): The log level to use for logging. Defaults to logging.DEBUG.
-        log_args (bool, optional): Should the function arguments be logged? Defaults to True.
-        log_return (bool, optional): Should function return be logged? Defaults to True.
+        level (Union[int, str]): The log level to use for logging. Defaults to logging.DEBUG.
+        log_args (bool): Should the function arguments be logged? Defaults to True.
+        log_return (bool): Should function return be logged? Defaults to True.
         max_str_len (Optional[int]): Maximum length of the logged arguments and return values. Defaults to 1000.
-        log_exec_time (bool, optional): Should the function execution time be measured? Defaults to True.
+        log_exec_time (bool): Should the function execution time be measured? Defaults to True.
+        single_msg (bool): Should both enter and exit log messages be combined into a single message? Default False
 
     Returns:
-        Callable[..., Callable[..., Any]]: The decorated function.
+        Callable[..., Callable[..., Any]]: The executed decorated function.
     """
     if isinstance(level, str):
         level_int = logging.getLevelName(level.upper())
@@ -78,14 +80,16 @@ def logf(
 
             fname = f'{func.__name__}()' # shorthand reference
 
-            # Log function arguments if required
+            # Log function arguments if required argstr used later if single msg
+            # otherwise, only the function name is logged on entry
+            logmsg_enter, argstr = fname, ''
             if log_args:
                 argstr = f'{trunc_str(str(args), max_str_len)} {trunc_str(str(kwargs), max_str_len)}'
                 logmsg_enter = f'{fname} | {argstr}'
-            else:
-                logmsg_enter = fname # only log function name on entry
 
-            logger.log(level_int, logmsg_enter)
+            # if single_msg=True log both enter/exit in one message later
+            if not single_msg:
+                logger.log(level_int, logmsg_enter)
 
             # Execute the function
             result = func(*args, **kwargs)
@@ -96,6 +100,10 @@ def logf(
                 logmsg_exit = f'{fname} {exec_time:.5f}s'
             else:
                 logmsg_exit = fname # only use func name
+
+            # if single_msg=True and log_args=True include the args in the single msg
+            if single_msg and log_args:
+                logmsg_exit = f'{logmsg_exit} | {argstr}'
 
             # if log_return=True include returned obj str in logmsg
             if log_return:

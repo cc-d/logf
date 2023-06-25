@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='logfunc',
-    version='1.1.1',
+    version='1.2.0',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
@@ -26,5 +26,6 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )

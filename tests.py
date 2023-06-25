@@ -27,6 +27,7 @@ class TestLogf(unittest.TestCase):
             - The execution time is logged in seconds.
             - The return value of 'testfunc' is logged as 'ret'.
             - The default truncated length of args/kwargs/return
+            - Two log messages are logged by default
         """
         @logf()
         def testfunc(ar, kar=None):
@@ -34,6 +35,8 @@ class TestLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             testfunc('ar', kar='kar')
+
+        self.assertTrue(len(log.output) == 2)
 
         l0, l1 = log.output[0], log.output[1]
 
@@ -89,6 +92,22 @@ class TestLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             hastime()
             self.assertTrue(len(log.output[1].split(' | ')[0].split()) == 2)
+
+    def test_single_msg(self):
+        """ tests single_msg=True only sends a single log message and that it is formatted correctly """
+        @logf(single_msg=True)
+        def msg(ar, kar='kar'):
+            return 'ret'
+
+        with self.assertLogs(level='DEBUG') as log:
+            msg('ar', kar='kar')
+
+        l0 = log.output[0]
+
+        self.assertTrue(re.search(
+            r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',  l0.split(' | ')[1]))
+        self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l0.split()[1]))
+        self.assertTrue(l0.split(' | ')[2]) == 'ret'
 
 
 if __name__ == '__main__':
