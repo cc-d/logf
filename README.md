@@ -43,7 +43,7 @@ The `logf` function allows you to customize your logging:
 - You can set the log level with the `level` parameter.
 - Use `log_args` and `log_return` parameters to choose whether to log the arguments and the return value of the function.
 - `max_str_len` parameter allows you to set the maximum length of the logged arguments and return values. If `None` is passed, the entire args/kwargs/result are logged as their full-length strings.
-- You can choose whether to measure and log the function execution time with the `measure_time` parameter.
+- You can choose whether to measure and log the function execution time with the `log_exec_time` parameter.
 
 Here is an example:
 
@@ -51,7 +51,7 @@ Here is an example:
 from logfunc import logf
 
 @logf(level='INFO', log_args=False, log_return=True,
-    max_str_len=None, measure_time=True)
+    max_str_len=None, log_exec_time=True)
 def my_function(a, b):
     return a + b
 ```

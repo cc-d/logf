@@ -45,7 +45,7 @@ def logf(
     max_str_len: Optional[int] = TRUNC_STR_LEN,
     log_exec_time: bool = True,
     **kwargs
-) -> Callable[[T], T]:
+) -> Callable[..., Callable[..., Any]]:
     """
     A decorator that logs the execution time, function name, arguments, keyword arguments,
     and return value of a function using a specified log level.
@@ -58,7 +58,7 @@ def logf(
         log_exec_time (bool, optional): Should the function execution time be measured? Defaults to True.
 
     Returns:
-        Callable[[T], T]: The wrapped function.
+        Callable[..., Callable[..., Any]]: The decorated function.
     """
     if isinstance(level, str):
         level_int = logging.getLevelName(level.upper())
@@ -70,9 +70,9 @@ def logf(
     if 'measure_time' in kwargs:
         log_exec_time = kwargs['measure_time']
 
-    def decorator(func: T) -> T:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> Any:
             # Start the timer if required and execute the function.
             start_time = time.time() if log_exec_time else None
 
