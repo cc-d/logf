@@ -16,6 +16,7 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 TRUNC_STR_LEN = 1000
 
+
 def get_evar(evar: str, curval: any) -> any:
     """ Returns the appropriately typed value for a given env var for the @logf decorator.
 
@@ -27,20 +28,23 @@ def get_evar(evar: str, curval: any) -> any:
         any: what to use for the value for the equivalent parameter LOGF_x evar is referring to.
     """
     val = os.environ.get(evar, None)
+    print(curval, 'start')
     if val is None:
         return curval
 
     if evar == 'LOGF_LEVEL': # int/str
         try:
-            val = int(val)
+            curval = int(val)
         except ValueError:
-            val = str(val).upper()
+            curval = str(val).upper()
     elif evar == 'LOGF_MAX_STR_LEN': # int/none
         try:
-            val = int(val)
+            curval = int(val)
         except ValueError:
-            val = None
-    return val
+            curval = None
+    print(curval, 'end')
+
+    return curval
 
 
 def trunc_str(string: str, max_length: Optional[int] = TRUNC_STR_LEN) -> str:
@@ -60,7 +64,7 @@ def trunc_str(string: str, max_length: Optional[int] = TRUNC_STR_LEN) -> str:
         return string
 
     if len(string) > max_length:
-        return string[:max_length - 3] + '...'
+        return string[0:max_length] + '...'
     return string
 
 

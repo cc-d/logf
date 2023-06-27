@@ -66,7 +66,7 @@ The `logf` function supports overriding some default parameters with environment
 | Env Var          | Example Values       |
 |------------------|-------------|
 | LOGF_LEVEL       | DEBUG INFO WARNING ERROR CRITICAL 10 20 30 40 50|
-| LOGF_MAX_STR_LEN | 10 50 10000000 None|
+| LOGF_MAX_STR_LEN | 10 50 10000000 None NONE none |
 
 Please replace `[Value here]` with the actual values you want to display for each environment variable.
 

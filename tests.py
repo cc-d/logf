@@ -2,6 +2,7 @@
 import unittest
 import logging
 import re
+import os
 from logfunc import logf, TRUNC_STR_LEN
 from unittest.mock import patch
 
@@ -51,30 +52,30 @@ class TestLogf(unittest.TestCase):
 
         @logf()
         def testtrunc():
-            return '0' * 100000
+            return '0' * 1000000000
 
         with self.assertLogs(level='DEBUG') as log:
             testtrunc()
             self.assertTrue(
-                len(log.output[1].split(' | ')[1]) == TRUNC_STR_LEN)
+                len(log.output[1].split(' | ')[1]) == TRUNC_STR_LEN + 3)
 
     def test_max_str_len(self):
         """ tests to ensure that log messages have proper trunc behaviour """
         @logf(max_str_len=22)
-        def trunc10():
-            return '0' * 1000
+        def trunc22():
+            return '0' * 1000000
 
         @logf(max_str_len=None)
         def truncNone():
-            return '0' * 55555
+            return '0' * 1000000
 
         with self.assertLogs(level='DEBUG') as log:
-            trunc10()
-            self.assertTrue(len(log.output[1].split(' | ')[1]) == 22)
+            trunc22()
+            self.assertTrue(len(log.output[1].split(' | ')[1]) == 22 + 3) # trunc'd by trunc_str
 
         with self.assertLogs(level='DEBUG') as log:
             truncNone()
-            self.assertTrue(len(log.output[1].split(' | ')[1]) == 55555)
+            self.assertTrue(len(log.output[1].split(' | ')[1]) == 1000000)
 
     def test_measure_time(self):
         """ tests backwards compatability of measure_time kwarg as well as exec_time """
@@ -109,6 +110,42 @@ class TestLogf(unittest.TestCase):
             r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',  l0.split(' | ')[1]))
         self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l0.split()[1]))
         self.assertTrue(l0.split(' | ')[2]) == 'ret'
+
+    def test_evar_level(self):
+        """ tests LOGF_LEVEL env var behaviour with logf """
+        os.environ['LOGF_LEVEL'] = 'warning'
+        @logf()
+        def warn():
+            return 'ret'
+
+        with self.assertLogs(level='WARNING') as log:
+            warn()
+
+        self.assertTrue(log.output[0].startswith('WARNING'))
+        del os.environ['LOGF_LEVEL']
+
+    def test_evar_max_str_len(self):
+        """ tests LOGF_MAX_STR_LEN behaviour """
+        os.environ['LOGF_MAX_STR_LEN'] = 'NonE'
+        @logf()
+        def longstr():
+            return '0' * 100000
+
+        with self.assertLogs(level='DEBUG') as log:
+            longstr()
+            self.assertTrue(len(log.output[1]) >= 10000)
+        del os.environ['LOGF_MAX_STR_LEN']
+
+        os.environ['LOGF_MAX_STR_LEN'] = '1'
+        @logf()
+        def longstr():
+            return '0' * 100000
+
+        with self.assertLogs(level='DEBUG') as log:
+            longstr()
+            print(log.output)
+            self.assertTrue(log.output[1].split(' | ')[1] == '0...')
+        del os.environ['LOGF_MAX_STR_LEN']
 
 
 if __name__ == '__main__':
