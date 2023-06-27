@@ -3,6 +3,7 @@ import unittest
 import logging
 import re
 from logfunc import logf, TRUNC_STR_LEN
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -76,7 +77,7 @@ class TestLogf(unittest.TestCase):
             self.assertTrue(len(log.output[1].split(' | ')[1]) == 55555)
 
     def test_measure_time(self):
-        """ tests backwards compatability of measure_time kwarg """
+        """ tests backwards compatability of measure_time kwarg as well as exec_time """
         @logf(measure_time=False)
         def notime():
             return 'ret'

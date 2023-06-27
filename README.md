@@ -59,6 +59,17 @@ def my_function(a, b):
 
 In this example, the function logs at the 'INFO' level, it doesn't log the function arguments, it logs the return value, logs the entire return string without any truncation, and it measures and logs the execution time, and it only uses a single log message as opposed to two on enter/exit.
 
+### Environment Variables
+
+The `logf` function supports overriding some default parameters with environment variables:
+
+| Env Var          | Example Values       |
+|------------------|-------------|
+| LOGF_LEVEL       | DEBUG INFO WARNING ERROR CRITICAL 10 20 30 40 50|
+| LOGF_MAX_STR_LEN | 10 50 10000000 None|
+
+Please replace `[Value here]` with the actual values you want to display for each environment variable.
+
 ## Testing
 
 This module comes with a test suite which you can run to ensure that `logf` behaves as expected. The tests are implemented using Python's built-in `unittest` module.
