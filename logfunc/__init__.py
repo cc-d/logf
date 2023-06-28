@@ -36,12 +36,22 @@ def get_evar(evar: str, curval: any) -> any:
         try:
             curval = int(val)
         except ValueError:
-            curval = str(val).upper()
+            val = str(val).upper()
+            if val in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+                curval = val
     elif evar == 'LOGF_MAX_STR_LEN': # int/none
         try:
             curval = int(val)
         except ValueError:
-            curval = None
+            if str(val).upper() == 'NONE':
+                curval = None
+    elif evar == 'LOGF_SINGLE_MSG':
+        val = str(val).upper()
+        if val == 'TRUE':
+            curval = True
+        elif val == 'FALSE':
+            curval = False
+
     print(curval, 'end')
 
     return curval
@@ -94,6 +104,7 @@ def logf(
     """
     level = get_evar('LOGF_LEVEL', level)
     max_str_len = get_evar('LOGF_MAX_STR_LEN', max_str_len)
+    single_msg = get_evar('LOGF_SINGLE_MSG', single_msg)
 
     if isinstance(level, str):
         level_int = logging.getLevelName(level.upper())

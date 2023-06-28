@@ -109,7 +109,7 @@ class TestLogf(unittest.TestCase):
         self.assertTrue(re.search(
             r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',  l0.split(' | ')[1]))
         self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l0.split()[1]))
-        self.assertTrue(l0.split(' | ')[2]) == 'ret'
+        self.assertTrue(l0.split(' | ')[2] == 'ret')
 
     def test_evar_level(self):
         """ tests LOGF_LEVEL env var behaviour with logf """
@@ -143,10 +143,20 @@ class TestLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             longstr()
-            print(log.output)
             self.assertTrue(log.output[1].split(' | ')[1] == '0...')
         del os.environ['LOGF_MAX_STR_LEN']
 
+    def test_evar_single_msg(self):
+        """ tests LOGF_SINGLE_MSG evar override """
+        os.environ['LOGF_SINGLE_MSG'] = 'TruE'
+        @logf()
+        def singlemsg():
+            return 'ret'
+
+        with self.assertLogs(level='DEBUG') as log:
+            singlemsg()
+            self.assertEqual(len(log.output), 1)
+        del os.environ['LOGF_SINGLE_MSG']
 
 if __name__ == '__main__':
     unittest.main()
