@@ -119,14 +119,18 @@ def logf(
             # Start the timer if required and execute the function.
             start_time = time.time() if log_exec_time else None
 
-            fname = f'{func.__name__}()' # shorthand reference
+            fname = '{}()'.format(func.__name__) # shorthand reference
 
             # Log function arguments if required argstr used later if single msg
             # otherwise, only the function name is logged on entry
             logmsg_enter, argstr = fname, ''
             if log_args:
-                argstr = f'{trunc_str(str(args), max_str_len)} {trunc_str(str(kwargs), max_str_len)}'
-                logmsg_enter = f'{fname} | {argstr}'
+                argstr = '{} {}'.format(
+                    trunc_str(str(args), max_str_len),
+                    trunc_str(str(kwargs), max_str_len)
+                )
+                logmsg_enter = '{} | {}'.format(fname, argstr)
+
 
             # if single_msg=True log both enter/exit in one message later
             if not single_msg:
@@ -138,17 +142,18 @@ def logf(
             # include execution time if log_exec_time=True
             if log_exec_time:
                 exec_time = time.time() - start_time
-                logmsg_exit = f'{fname} {exec_time:.5f}s'
+                logmsg_exit = '{} {:.5f}s'.format(fname, exec_time)
             else:
                 logmsg_exit = fname # only use func name
 
             # if single_msg=True and log_args=True include the args in the single msg
             if single_msg and log_args:
-                logmsg_exit = f'{logmsg_exit} | {argstr}'
+                logmsg_exit = '{} | {}'.format(logmsg_exit, argstr)
 
             # if log_return=True include returned obj str in logmsg
             if log_return:
-                logmsg_exit = f'{logmsg_exit} | {trunc_str(str(result), max_str_len)}'
+                logmsg_exit = '{} | {}'.format(
+                    logmsg_exit, trunc_str(str(result), max_str_len))
 
             # Log the return value and execution time if required
             logger.log(level_int, logmsg_exit)
