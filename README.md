@@ -1,6 +1,6 @@
 # logf
 
-The `@logf()` decorator, previously a part of the myfuncs pip package, is now a standalone pip package. This repository is dedicated to its development and maintenance.
+`@logf()` is a decorator designed to enable effortless and automatic logging of your Python functions' execution, requiring zero configuration for basic usage. Formerly a part of the myfuncs pip package, it is now a standalone pip package. This repository is dedicated to its continued development and maintenance.
 
 ## Usage
 
@@ -61,14 +61,14 @@ In this example, the function logs at the 'INFO' level, it doesn't log the funct
 
 ### Environment Variables
 
-The `logf` function supports overriding some default parameters with environment variables:
+The `logf` function supports overriding some default/passed parameters with environment variables:
 
 | Env Var          | Example Values       |
 |------------------|-------------|
 | LOGF_LEVEL       | DEBUG INFO WARNING ERROR CRITICAL 10 20 30 40 50|
 | LOGF_MAX_STR_LEN | 10 50 10000000 None NONE none |
+| LOGF_SINGLE_MSG  | True False
 
-Please replace `[Value here]` with the actual values you want to display for each environment variable.
 
 ## Testing
 

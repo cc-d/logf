@@ -28,7 +28,6 @@ def get_evar(evar: str, curval: any) -> any:
         any: what to use for the value for the equivalent parameter LOGF_x evar is referring to.
     """
     val = os.environ.get(evar, None)
-    print(curval, 'start')
     if val is None:
         return curval
 
@@ -51,8 +50,6 @@ def get_evar(evar: str, curval: any) -> any:
             curval = True
         elif val == 'FALSE':
             curval = False
-
-    print(curval, 'end')
 
     return curval
 
