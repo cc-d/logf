@@ -29,7 +29,7 @@ The `logf` function is a decorator that you can apply to any function you want t
 ```python
 from logfunc import logf
 
-@logf(level='warning')
+@logf()
 def my_function(a, b='b'):
     return str(a) + str(b) + 'c'
 ```
