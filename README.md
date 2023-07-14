@@ -1,6 +1,6 @@
 # logf
 
-`@logf()` is a decorator designed to enable effortless and automatic logging of your Python functions' execution, requiring zero configuration for basic usage. Formerly a part of the myfuncs pip package, it is now a standalone pip package. This repository is dedicated to its continued development and maintenance.
+`@logf()` is a decorator designed to enable effortless logging of your Python functions' execution, requiring zero configuration for basic usage. Formerly a part of the myfuncs pip package, it is now a standalone pip package. This repository is dedicated to its continued development and maintenance.
 
 ## Usage
 
