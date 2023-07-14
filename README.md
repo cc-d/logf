@@ -29,12 +29,19 @@ The `logf` function is a decorator that you can apply to any function you want t
 ```python
 from logfunc import logf
 
-@logf()
-def my_function(a, b):
-    return a + b
+@logf(level='warning')
+def my_function(a, b='b'):
+    return str(a) + str(b) + 'c'
 ```
 
 In the example above, `logf()` is used to wrap `my_function`. When `my_function` is called, it logs the function name, arguments, return value, and execution time.
+
+```
+>>> my_function('a')
+my_function() | ('a',) {}
+my_function() 0.00051s | abc
+'abc'
+```
 
 ### Customize Logging
 
