@@ -119,7 +119,6 @@ def logf(
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            print('@@useprint', use_print)
             # Start the timer if required and execute the function.
             start_time = time.time() if log_exec_time else None
 
