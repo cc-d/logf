@@ -44,13 +44,13 @@ def get_evar(evar: str, curval: any) -> any:
         except ValueError:
             if str(val).upper() == 'NONE':
                 curval = None
-    elif evar == 'LOGF_SINGLE_MSG':
+    elif evar in ['LOGF_SINGLE_MSG', 'LOGF_USE_PRINT']:
         val = str(val).upper()
         if val == 'TRUE':
             curval = True
         elif val == 'FALSE':
             curval = False
-
+    print('@@evar', evar, val, curval)
     return curval
 
 
@@ -82,6 +82,7 @@ def logf(
     max_str_len: Optional[int] = TRUNC_STR_LEN,
     log_exec_time: bool = True,
     single_msg: bool = False,
+    use_print: bool = False,
     **kwargs
 ) -> Callable[..., Callable[..., Any]]:
     """
@@ -95,6 +96,7 @@ def logf(
         max_str_len (Optional[int]): Maximum length of the logged arguments and return values. Defaults to 1000.
         log_exec_time (bool): Should the function execution time be measured? Defaults to True.
         single_msg (bool): Should both enter and exit log messages be combined into a single message? Default False
+        use_print (bool): Should the log messages be printed instead of logged? Default False
 
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
@@ -102,6 +104,7 @@ def logf(
     level = get_evar('LOGF_LEVEL', level)
     max_str_len = get_evar('LOGF_MAX_STR_LEN', max_str_len)
     single_msg = get_evar('LOGF_SINGLE_MSG', single_msg)
+    use_print = get_evar('LOGF_USE_PRINT', use_print)
 
     if isinstance(level, str):
         level_int = logging.getLevelName(level.upper())
@@ -116,6 +119,7 @@ def logf(
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
+            print('@@useprint', use_print)
             # Start the timer if required and execute the function.
             start_time = time.time() if log_exec_time else None
 
@@ -134,7 +138,10 @@ def logf(
 
             # if single_msg=True log both enter/exit in one message later
             if not single_msg:
-                logger.log(level_int, logmsg_enter)
+                if use_print:
+                    print(logmsg_enter)
+                else:
+                    logger.log(level_int, logmsg_enter)
 
             # Execute the function
             result = func(*args, **kwargs)
@@ -156,7 +163,10 @@ def logf(
                     logmsg_exit, trunc_str(str(result), max_str_len))
 
             # Log the return value and execution time if required
-            logger.log(level_int, logmsg_exit)
+            if use_print:
+                print(logmsg_exit)
+            else:
+                logger.log(level_int, logmsg_exit)
 
             return result
         return wrapper

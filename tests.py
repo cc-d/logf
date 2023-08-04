@@ -3,6 +3,8 @@ import unittest
 import logging
 import re
 import os
+import sys
+from io import StringIO
 from logfunc import logf, TRUNC_STR_LEN
 from unittest.mock import patch
 
@@ -157,6 +159,20 @@ class TestLogf(unittest.TestCase):
             singlemsg()
             self.assertEqual(len(log.output), 1)
         del os.environ['LOGF_SINGLE_MSG']
+
+    def test_evar_use_print(self):
+        """ tests LOGF_USE_PRINT evar override """
+        os.environ['LOGF_USE_PRINT'] = 'True'
+        @logf()
+        def useprint():
+            return 'ret'
+
+        with self.assertLogs(level='DEBUG') as log:
+            useprint()
+            for _ in range(5):
+                logging.debug('test')
+            self.assertEqual(len(log.output), 5)
+        del os.environ['LOGF_USE_PRINT']
 
 if __name__ == '__main__':
     unittest.main()
