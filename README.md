@@ -38,13 +38,14 @@ In the example above, `logf()` is used to wrap `my_function`. When `my_function`
 
 ### Customize Logging
 
-The `logf` function allows you to customize your logging:
+The `logf` decorator allows you to customize your logging:
 
 - You can set the log level with the `level` parameter.
 - Use `log_args` and `log_return` parameters to choose whether to log the arguments and the return value of the function.
 - `max_str_len` parameter allows you to set the maximum length of the logged arguments and return values. If `None` is passed, the entire args/kwargs/result are logged as their full-length strings.
 - You can choose whether to measure and log the function execution time with the `log_exec_time` parameter.
 - You can include the execution time, args, and return value in a single message with the `single_msg` parameter.
+- `use_print` print() log messages rather than logging them
 
 Here is an example:
 
@@ -68,6 +69,7 @@ The `logf` function supports overriding some default/passed parameters with envi
 | LOGF_LEVEL       | DEBUG INFO WARNING ERROR CRITICAL 10 20 30 40 50|
 | LOGF_MAX_STR_LEN | 10 50 10000000 None NONE none |
 | LOGF_SINGLE_MSG  | True False
+| LOGF_USE_PRINT   | True False
 
 
 ## Testing
