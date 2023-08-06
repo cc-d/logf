@@ -50,7 +50,6 @@ def get_evar(evar: str, curval: any) -> any:
             curval = True
         elif val == 'FALSE':
             curval = False
-    print('@@evar', evar, val, curval)
     return curval
 
 
