@@ -1,0 +1,23 @@
+==> logf_use_print.false <==
+cm_large: No logf: 0.03382042 | Logf: 0.03951200 | Diff: 0.00569158
+cm_large: No logf: 0.03486471 | Logf: 0.03996021 | Diff: 0.00509550
+cm_large: No logf: 0.03405971 | Logf: 0.04039625 | Diff: 0.00633654
+cm_large: No logf: 0.03473304 | Logf: 0.04047633 | Diff: 0.00574329
+cm_large: No logf: 0.03441704 | Logf: 0.03999608 | Diff: 0.00557904
+cm_large: No logf: 0.03410492 | Logf: 0.04010471 | Diff: 0.00599979
+cm_large: No logf: 0.03413613 | Logf: 0.03969708 | Diff: 0.00556096
+cm_large: No logf: 0.03400262 | Logf: 0.03984304 | Diff: 0.00584042
+cm_large: No logf: 0.03461867 | Logf: 0.04145621 | Diff: 0.00683754
+cm_large: No logf: 0.03458379 | Logf: 0.03993721 | Diff: 0.00535342
+
+==> logf_use_print.true <==
+cm_large: No logf: 0.03390446 | Logf: 0.05185350 | Diff: 0.01794904
+cm_large: No logf: 0.03390354 | Logf: 0.05250192 | Diff: 0.01859837
+cm_large: No logf: 0.03345375 | Logf: 0.05270596 | Diff: 0.01925221
+cm_large: No logf: 0.03408846 | Logf: 0.05226908 | Diff: 0.01818063
+cm_large: No logf: 0.03392133 | Logf: 0.05249942 | Diff: 0.01857808
+cm_large: No logf: 0.03381400 | Logf: 0.05228267 | Diff: 0.01846867
+cm_large: No logf: 0.03374342 | Logf: 0.05215479 | Diff: 0.01841138
+cm_large: No logf: 0.03377575 | Logf: 0.05189075 | Diff: 0.01811500
+cm_large: No logf: 0.03395954 | Logf: 0.05195254 | Diff: 0.01799300
+cm_large: No logf: 0.03398125 | Logf: 0.05170192 | Diff: 0.01772067
