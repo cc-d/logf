@@ -4,14 +4,16 @@ import logging
 import re
 import os
 import sys
+import asyncio
 from io import StringIO
-from logfunc import logf, TRUNC_STR_LEN
+from logfunc.main import logf, TRUNC_STR_LEN
 from unittest.mock import patch
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class TestLogf(unittest.TestCase):
-    """ inherits from unittest.TestCase to test @logf() decorator """
+    """inherits from unittest.TestCase to test @logf() decorator"""
 
     def test_defaults(self):
         """
@@ -33,6 +35,7 @@ class TestLogf(unittest.TestCase):
             - The default truncated length of args/kwargs/return
             - Two log messages are logged by default
         """
+
         @logf()
         def testfunc(ar, kar=None):
             return 'ret'
@@ -46,8 +49,12 @@ class TestLogf(unittest.TestCase):
 
         self.assertTrue(l0.split(':')[0] == 'DEBUG')
         self.assertTrue(l0.split(':')[2].startswith('testfunc'))
-        self.assertTrue(re.search(
-            r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',  l0.split(' | ')[1]))
+        self.assertTrue(
+            re.search(
+                r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',
+                l0.split(' | ')[1],
+            )
+        )
 
         self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l1.split()[1]))
         self.assertTrue(l1.split(' | ')[1] == 'ret')
@@ -59,10 +66,12 @@ class TestLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             testtrunc()
             self.assertTrue(
-                len(log.output[1].split(' | ')[1]) == TRUNC_STR_LEN + 3)
+                len(log.output[1].split(' | ')[1]) == TRUNC_STR_LEN + 3
+            )
 
     def test_max_str_len(self):
-        """ tests to ensure that log messages have proper trunc behaviour """
+        """tests to ensure that log messages have proper trunc behaviour"""
+
         @logf(max_str_len=22)
         def trunc22():
             return '0' * 1000000
@@ -73,14 +82,17 @@ class TestLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             trunc22()
-            self.assertTrue(len(log.output[1].split(' | ')[1]) == 22 + 3) # trunc'd by trunc_str
+            self.assertTrue(
+                len(log.output[1].split(' | ')[1]) == 22 + 3
+            )  # trunc'd by trunc_str
 
         with self.assertLogs(level='DEBUG') as log:
             truncNone()
             self.assertTrue(len(log.output[1].split(' | ')[1]) == 1000000)
 
     def test_measure_time(self):
-        """ tests backwards compatability of measure_time kwarg as well as exec_time """
+        """tests backwards compatability of measure_time kwarg as well as exec_time"""
+
         @logf(measure_time=False)
         def notime():
             return 'ret'
@@ -98,7 +110,8 @@ class TestLogf(unittest.TestCase):
             self.assertTrue(len(log.output[1].split(' | ')[0].split()) == 2)
 
     def test_single_msg(self):
-        """ tests single_msg=True only sends a single log message and that it is formatted correctly """
+        """tests single_msg=True only sends a single log message and that it is formatted correctly"""
+
         @logf(single_msg=True)
         def msg(ar, kar='kar'):
             return 'ret'
@@ -108,14 +121,19 @@ class TestLogf(unittest.TestCase):
 
         l0 = log.output[0]
 
-        self.assertTrue(re.search(
-            r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',  l0.split(' | ')[1]))
+        self.assertTrue(
+            re.search(
+                r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',
+                l0.split(' | ')[1],
+            )
+        )
         self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l0.split()[1]))
         self.assertTrue(l0.split(' | ')[2] == 'ret')
 
     def test_evar_level(self):
-        """ tests LOGF_LEVEL env var behaviour with logf """
+        """tests LOGF_LEVEL env var behaviour with logf"""
         os.environ['LOGF_LEVEL'] = 'warning'
+
         @logf()
         def warn():
             return 'ret'
@@ -127,8 +145,9 @@ class TestLogf(unittest.TestCase):
         del os.environ['LOGF_LEVEL']
 
     def test_evar_max_str_len(self):
-        """ tests LOGF_MAX_STR_LEN behaviour """
+        """tests LOGF_MAX_STR_LEN behaviour"""
         os.environ['LOGF_MAX_STR_LEN'] = 'NonE'
+
         @logf()
         def longstr():
             return '0' * 100000
@@ -139,6 +158,7 @@ class TestLogf(unittest.TestCase):
         del os.environ['LOGF_MAX_STR_LEN']
 
         os.environ['LOGF_MAX_STR_LEN'] = '1'
+
         @logf()
         def longstr():
             return '0' * 100000
@@ -149,8 +169,9 @@ class TestLogf(unittest.TestCase):
         del os.environ['LOGF_MAX_STR_LEN']
 
     def test_evar_single_msg(self):
-        """ tests LOGF_SINGLE_MSG evar override """
+        """tests LOGF_SINGLE_MSG evar override"""
         os.environ['LOGF_SINGLE_MSG'] = 'TruE'
+
         @logf()
         def singlemsg():
             return 'ret'
@@ -161,8 +182,9 @@ class TestLogf(unittest.TestCase):
         del os.environ['LOGF_SINGLE_MSG']
 
     def test_evar_use_print(self):
-        """ tests LOGF_USE_PRINT evar override """
+        """tests LOGF_USE_PRINT evar override"""
         os.environ['LOGF_USE_PRINT'] = 'True'
+
         @logf()
         def useprint():
             return 'ret'
@@ -173,6 +195,25 @@ class TestLogf(unittest.TestCase):
                 logging.debug('test')
             self.assertEqual(len(log.output), 5)
         del os.environ['LOGF_USE_PRINT']
+
+
+class TestAsyncLogf(unittest.TestCase):
+    """verifies decorator works with async fucns"""
+
+    def test_async(self):
+        """tests async function logging"""
+
+        @logf()
+        async def asyncfunc():
+            await asyncio.sleep(1)
+            return 'ret2'
+
+        with self.assertLogs(level='DEBUG') as log:
+            asyncio.run(asyncfunc())
+            out = [l for l in log.output if 'asyncfunc' in l]
+            self.assertTrue(len(out) >= 2)
+            self.assertTrue(out[1].split(' | ')[1] == 'ret2')
+
 
 if __name__ == '__main__':
     unittest.main()

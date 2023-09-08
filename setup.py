@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='logfunc',
-    version='1.5.2',
+    version='1.6.0',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
@@ -15,7 +15,6 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/cc-d/logf/tree/main',
     license='MIT',
-
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
