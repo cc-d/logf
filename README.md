@@ -1,5 +1,8 @@
 # logf
 
+# NOTE: The published 1.5 package does not have async support but this repo does
+# 1.6 should have async support.
+
 `@logf()` is a decorator designed to enable effortless logging of your Python functions' execution, requiring zero configuration for basic usage. Formerly a part of the myfuncs pip package, it is now a standalone pip package. This repository is dedicated to its continued development and maintenance.
 
 ## Usage
