@@ -59,13 +59,13 @@ def trunc_str(string: str, max_length: Optional[int] = TRUNC_STR_LEN) -> str:
     ):  # None was explictly passed as an arg, return str as-is
         return string
 
-    if len(string) > max_length:
+    if len(str(string)) > max_length:
         return string[0:max_length] + '...'
     return string
 
 
 def func_args_str(
-    func: Callable,
+    func: Union[Callable, str],
     args: tuple,
     kwargs: dict,
     log_args: bool = True,
@@ -75,7 +75,7 @@ def func_args_str(
     Creates the log message for entering a function.
 
     Args:
-        func (Callable): The function being logged.
+        func (Callable): The function being logged or its name.
         args (tuple): The arguments passed to the function.
         kwargs (dict): The keyword arguments passed to the function.
         log_args (bool): Should the arguments be logged? Defaults to True.
@@ -85,13 +85,13 @@ def func_args_str(
     Returns:
         str: The enter log message.
     """
-
+    fname = func if isinstance(func, str) else func.__name__
     if log_args:
         argstr = ' | %s %s' % (trunc_str(args), trunc_str(kwargs))
     else:
         argstr = ''
 
-    return '%s%s' % (func.__name__, argstr)
+    return '%s%s' % (fname, argstr)
 
 
 def func_return_str(
@@ -110,7 +110,7 @@ def func_return_str(
     is True
 
     Args:
-        func (Callable): The function being logged.
+        func (Callable | str): The function being logged or its name.
         args (tuple): The arguments passed to the function.
         kwargs (dict): The keyword arguments passed to the function.
         result (any): The return value of the function.
@@ -125,9 +125,10 @@ def func_return_str(
     Returns:
         str: The exit log message.
     """
+    fname = func if isinstance(func, str) else func.__name__
     exec_time = time.time() - start_time if start_time else None
 
-    logmsg = '%s()' % func.__name__
+    logmsg = '%s()' % fname
     if exec_time is not None:
         logmsg = '{} {:.5f}s'.format(logmsg, exec_time)
 
