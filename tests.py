@@ -345,6 +345,27 @@ class TestAsyncLogf(unittest.TestCase):
             self.assertTrue(result == '1')
             print(log.output, 'with', result)
 
+    def test_async_start_time(self):
+        """Tests the async time() equivalent is used for the start time."""
+
+        @logf()
+        async def asyncfunc():
+            await asyncio.sleep(0.1)
+            return 'ret'
+
+        with self.assertLogs(level='DEBUG') as log:
+            asyncio.run(asyncfunc())
+            self.assertTrue(len(log.output) >= 2)
+            timere = r'\d+?\.?\d+s'
+            for logmsg in log.output:
+                logmsgtime = re.findall(timere, logmsg)
+                if len(logmsgtime) > 0:
+                    self.assertTrue(len(logmsgtime) == 1)
+                    exectime = float(logmsgtime[0].rstrip('s'))
+                    print(exectime, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                    self.assertTrue(exectime >= 0.1)
+                    self.assertTrue(exectime <= 20.0)
+
 
 class TestUtils(unittest.TestCase):
     def setUp(self):
@@ -377,7 +398,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(result, "abcdef")
 
     def test_func_args_str(self):
-        result = func_args_str("func_name", (1, 2.5), {"a": 3}, True, 10)
+        result = func_args_str("func_name", (1, 2.5), {"a": 3}, True)
         self.assertEqual(result, 'func_name | (1, 2.5) {\'a\': 3}')
 
     def test_func_return_str(self):

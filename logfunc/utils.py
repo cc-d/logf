@@ -1,6 +1,8 @@
 import os
 import time
 import logging
+import asyncio
+from inspect import iscoroutinefunction
 from typing import Optional, Callable, Any, TypeVar, Union
 from .config import TRUNC_STR_LEN
 
@@ -126,7 +128,13 @@ def func_return_str(
         str: The exit log message.
     """
     fname = func if isinstance(func, str) else func.__name__
-    exec_time = time.time() - start_time if start_time else None
+
+    if iscoroutinefunction(func):
+        exec_time = (
+            asyncio.get_event_loop().time() - start_time if start_time else None
+        )
+    else:
+        exec_time = time.time() - start_time if start_time else None
 
     logmsg = '%s()' % fname
     if exec_time is not None:
