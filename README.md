@@ -1,6 +1,8 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.7.0 | Last Change: Fixed Async exec time calc bug
+### CURRENT VERSION: v1.7.0
+
+### Last Change: Fixed Async exec time calc bug and added regression test
 
 `@logf()` is a Python decorator designed for uncomplicated and immediate addition of logging to functions. Its main goal is to provide developers with a tool that can be added quickly to any function and left in place without further adjustments.
 
@@ -68,9 +70,47 @@ Modify the behavior of `@logf()` using environment variables:
 | LOGF_SINGLE_MSG  | True, False          |
 | LOGF_USE_PRINT   | True, False          |
 
+See the following output for an example of how an env var will affect `@logf()` behaviour:
+
+Without `LOGF_USE_PRINT`:
+
+```
+mym2@Carys-MacBook-Pro liberfy-cli % ./cli user me
+Namespace(cmd='user', act='me')
+cmd user
+act me
+email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+```
+
+With `LOGF_USE_PRINT=True`: (jwt here isnt sensitive so no worries)
+
+```
+mym2@Carys-MacBook-Pro liberfy-cli % LOGF_USE_PRINT=True ./cli user me
+async_main | () {}
+setup_argparse | () {}
+setup_argparse() 0.00144s | ArgumentParser(prog='main.py', usage=None, description='CLI for user, project, sync directory, and directory file management.', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+apicmd | (ArgumentParser(prog='main.py', usage=None, description='CLI for user, project, sync directory, and directory file management.', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True),) {}
+Namespace(cmd='user', act='me')
+me | () {}
+get | ('/u/me',) {}
+_method | ('get', '/u/me') {}
+_inject_auth | ({},) {}
+load_token | () {}
+load_token() 0.00004s | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTQ1NTQ1MjAsInN1YiI6ImFAYS5hIiwiaWF0IjoxNjk0NTQ3MzIwfQ.p6NPOEAedaV6SzBkv3XYWTGmZ4sdAEshk76wacV6Jlw
+_inject_auth() 0.00005s | {'headers': {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTQ1NTQ1MjAsInN1YiI6ImFAYS5hIiwiaWF0IjoxNjk0NTQ3MzIwfQ.p6NPOEAedaV6SzBkv3XYWTGmZ4sdAEshk76wacV6Jlw'}}
+resp_exceptions | (<Response [200 OK]>,) {}
+resp_exceptions() 0.00002s | None
+_method() 0.01756s | {'email': 'a@a.a', 'id': 'a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'}
+get() 0.01757s | {'email': 'a@a.a', 'id': 'a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'}
+me() 0.01760s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+apicmd() 0.01773s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+async_main() 0.01922s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+```
+
 ### Real-world Examples
 
-To demonstrate its practicality, here are a few scenarios where `@logf()` can be beneficial:
+Here are a couple of real-world examples of `@logf()` usage:
 
 ```python
 from logfunc import logf
