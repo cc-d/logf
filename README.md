@@ -77,8 +77,6 @@ Without `LOGF_USE_PRINT`:
 ```
 mym2@Carys-MacBook-Pro liberfy-cli % ./cli user me
 Namespace(cmd='user', act='me')
-cmd user
-act me
 email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
 ```
 
