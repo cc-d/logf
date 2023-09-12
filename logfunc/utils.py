@@ -1,9 +1,11 @@
-import os
-import time
-import logging
 import asyncio
+import logging
+import os
+import re
+import time
 from inspect import iscoroutinefunction
-from typing import Optional, Callable, Any, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union
+
 from .config import TRUNC_STR_LEN
 
 
@@ -87,13 +89,18 @@ def func_args_str(
     Returns:
         str: The enter log message.
     """
-    fname = func if isinstance(func, str) else func.__name__
+    if not isinstance(func, str):
+        fname = func.__name__
+        fname = 'async %s' % fname if iscoroutinefunction(func) else fname
+    else:
+        fname = func
+
     if log_args:
         argstr = ' | %s %s' % (trunc_str(args), trunc_str(kwargs))
     else:
         argstr = ''
 
-    return '%s%s' % (fname, argstr)
+    return '%s()%s' % (fname, argstr)
 
 
 def func_return_str(
@@ -127,16 +134,23 @@ def func_return_str(
     Returns:
         str: The exit log message.
     """
-    fname = func if isinstance(func, str) else func.__name__
 
-    if iscoroutinefunction(func):
-        exec_time = (
-            asyncio.get_event_loop().time() - start_time if start_time else None
-        )
+    if not isinstance(func, str):
+        if iscoroutinefunction(func):
+            fname = 'async %s()' % func.__name__
+            exec_time = (
+                asyncio.get_event_loop().time() - start_time
+                if start_time
+                else None
+            )
+        else:
+            fname = '%s()' % func.__name__
+            exec_time = time.time() - start_time if start_time else None
     else:
         exec_time = time.time() - start_time if start_time else None
+        fname = '%s()' % func
 
-    logmsg = '%s()' % fname
+    logmsg = fname
     if exec_time is not None:
         logmsg = '{} {:.5f}s'.format(logmsg, exec_time)
 
@@ -184,3 +198,25 @@ def print_or_log(
     else:
         level_int = loglevel_int(level)
         logging.log(level_int, logmsg)
+
+
+def parse_logmsg(msg: str) -> Dict[str, str]:
+    pattern = r'(?:(?P<loglevel>\w+):(?P<loggername>\w+):)?(?P<funcname>\w+\(\))(?: (?P<exectime>\d+\.\d+)s)?(?: \| (?P<argstr>\(.*?\) \{.*?\}))?(?: \| (?P<result>.+))?'
+
+    rdict = {
+        'loglevel': '',
+        'loggername': '',
+        'funcname': '',
+        'exectime': '',
+        'argstr': '',
+        'result': '',
+    }
+
+    rmatch = re.match(pattern, msg)
+    if not rmatch:
+        return rdict
+
+    for k, v in rmatch.groupdict().items():
+        if v is not None:
+            rdict[k] = v
+    return rdict
