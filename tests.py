@@ -77,6 +77,25 @@ def async_decorator(async_func):
 class TestLogf(unittest.TestCase):
     """inherits from unittest.TestCase to test @logf() decorator"""
 
+    @classmethod
+    def setUpClass(cls):
+        for evar in EVARS:
+            if evar in os.environ:
+                del os.environ[evar]
+
+    @staticmethod
+    def _parse_log(log_message: str) -> dict:
+        """Parse a log message using regex."""
+        pattern = (
+            r'(?P<loglevel>\w+):'
+            r'(?P<funcname>\w+\(\)) '
+            r'(?:\| (?P<argstr>[^|]*) )?'
+            r'(?:\| (?P<result>[^|]*) )?'
+            r'(?:\| (?P<exectime>\S+))?'
+        )
+        match = re.match(pattern, log_message)
+        return match.groupdict() if match else {}
+
     def test_defaults(self):
         """
         test_defaults method tests the default behavior of the logf function decorator.
