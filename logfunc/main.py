@@ -1,24 +1,25 @@
-import os
-import re
-import time
-import inspect
-import random
-import string
 import asyncio
+import inspect
+import logging
+import os
+import random
+import re
+import string
+import sys
+import time
 from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar, Union
 
 from .config import TRUNC_STR_LEN
 from .utils import (
-    get_evar,
-    trunc_str,
     func_args_str,
     func_return_str,
-    print_or_log,
+    get_evar,
     loglevel_int,
+    print_or_log,
+    trunc_str,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ def logf(
                         func, args, kwargs, log_args, max_str_len
                     )
                     print_or_log(logmsg_enter, level, use_print)
+
                 result = await func(*args, **kwargs)
                 logmsg_exit = func_return_str(
                     func,
@@ -113,9 +115,7 @@ def logf(
 
                     print_or_log(logmsg_enter, level, use_print)
 
-                # Execute the function
                 result = func(*args, **kwargs)
-
                 logmsg_exit = func_return_str(
                     func,
                     args,

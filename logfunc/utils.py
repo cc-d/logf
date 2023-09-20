@@ -2,7 +2,9 @@ import asyncio
 import logging
 import os
 import re
+import sys
 import time
+import traceback
 from inspect import iscoroutinefunction
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union
 
@@ -201,7 +203,12 @@ def print_or_log(
 
 
 def parse_logmsg(msg: str) -> Dict[str, str]:
-    pattern = r'(?:(?P<loglevel>\w+):(?P<loggername>\w+):)?(?P<funcname>\w+\(\))(?: (?P<exectime>\d+\.\d+)s)?(?: \| (?P<argstr>\(.*?\) \{.*?\}))?(?: \| (?P<result>.+))?'
+    pattern = (
+        r'(?:(?P<loglevel>\w+):(?P<loggername>\w+):)?'
+        r'(?P<funcname>\w+\(\))'
+        r'(?: (?P<exectime>\d+\.\d+)s)?(?: \| '
+        r'(?P<argstr>\(.*?\) \{.*?\}))?(?: \| (?P<result>.+))?'
+    )
 
     rdict = {
         'loglevel': '',
