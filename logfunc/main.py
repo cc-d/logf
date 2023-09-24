@@ -70,6 +70,7 @@ def logf(
         log_exec_time = kwargs['measure_time']
 
     def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
+        # handle async funcs
         if inspect.iscoroutinefunction(func):
 
             @wraps(func)
@@ -98,6 +99,7 @@ def logf(
                 print_or_log(logmsg_exit, level, use_print)
                 return result
 
+        # handle sync funcs
         else:
 
             @wraps(func)
