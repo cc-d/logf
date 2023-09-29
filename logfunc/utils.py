@@ -98,7 +98,7 @@ def func_args_str(
         fname = func
 
     if log_args:
-        argstr = ' | %s %s' % (trunc_str(args), trunc_str(kwargs))
+        argstr = ' | %s %s' % (trunc_str('%s' % args), trunc_str('%s' % kwargs))
     else:
         argstr = ''
 
