@@ -16,7 +16,7 @@ setup(
     ),
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/cc-d/logf/tree/main',
+    url='https://github.com/cc-d/logf/',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
