@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
-import unittest
-import logging
-import re
-import os
-import sys
 import asyncio
-from json import loads
-from typing import Optional, Dict, List, Union, Any, Tuple
-from os.path import dirname, abspath, join
+import logging
+import os
+import re
+import sys
+import unittest
 from io import StringIO
-from logfunc.main import logf, TRUNC_STR_LEN
+from json import loads
+from os.path import abspath, dirname, join
+from typing import Any, Dict, List, Optional, Tuple, Union
+from unittest.mock import patch
+
+sys.path.append(abspath(dirname(__file__)))
+
 from logfunc.config import EVARS
-from unittest.mock import patch
-from unittest.mock import patch
+from logfunc.main import TRUNC_STR_LEN, logf
 from logfunc.utils import (
-    get_evar,
-    trunc_str,
     func_args_str,
     func_return_str,
-    print_or_log,
+    get_evar,
     loglevel_int,
     parse_logmsg,
+    print_or_log,
+    trunc_str,
 )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -505,6 +507,23 @@ class TestUtils(unittest.TestCase):
 
         result = trunc_str("abcdef", 10)
         self.assertEqual(result, "abcdef")
+
+        # regression test for non-strs being provided
+        result = trunc_str({1, 2, 3, 4})
+        self.assertEqual(result, str({1, 2, 3, 4}))
+
+        # regression test for max_len=None w/ long length
+        longstr = 'a' * 1000000
+        result = trunc_str(longstr, None)
+        self.assertEqual(len(result), len(longstr))
+
+        _milstr = 'a' * 1000000
+        _sublen = 20000
+        _submilstr = ('a' * _sublen) + '...'
+
+        # test for max_len that is large but not None
+        result = trunc_str(_milstr, _sublen)
+        self.assertEqual(len(result), len(_submilstr))
 
     def test_func_args_str(self):
         result = func_args_str("func_name", (1, 2.5), {"a": 3}, True)

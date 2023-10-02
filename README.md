@@ -1,8 +1,8 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.8.0
+### CURRENT VERSION: v1.8.1
 
-### Last Change: Fixed Async exec time calc bug and added regression tests
+### Last Change: Fixed bug with args/kwarg truncation and added tests/regression tests for fixed behaviour
 
 `@logf()` is a Python decorator designed for uncomplicated and immediate addition of logging to functions. Its main goal is to provide developers with a tool that can be added quickly to any function and left in place without further adjustments.
 

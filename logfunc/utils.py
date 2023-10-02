@@ -47,27 +47,29 @@ def get_evar(evar: str, curval: any) -> any:
     return curval
 
 
-def trunc_str(string: str, max_length: Optional[int] = TRUNC_STR_LEN) -> str:
-    """
-    Truncates a string if its length exceeds the specified maximum length.
+def trunc_str(
+    tstr: Any, max_length: Optional[Union[int, None]] = TRUNC_STR_LEN
+) -> str:
+    """Truncates a string if its length exceeds the specified maximum length.
     If the string is truncated, it appends '...' to indicate the truncation. If
-    no max_length is specified, the string is returned as-is.
+    no max_length is specified, the string is returned as-is. If a non-str is
+    passed, it is cast to str before truncating.
 
     Args:
-        string (str): The string to truncate.
-        max_length (int): The maximum length of the truncated string. Defaults to 1000.
+        tstr (Any): The object/str to truncate.
+        max_length (Optional[int | None]): The maximum length of the truncated string.
+            Defaults to 1000.
 
     Returns:
         str: The truncated string.
     """
-    if (
-        max_length is None
-    ):  # None was explictly passed as an arg, return str as-is
-        return string
+    if not isinstance(tstr, str):
+        tstr = str(tstr)
 
-    if len(str(string)) > max_length:
-        return string[0:max_length] + '...'
-    return string
+    if max_length is None or len(tstr) < max_length:
+        return tstr
+    else:
+        return tstr[0:max_length] + '...'
 
 
 def func_args_str(
@@ -98,7 +100,10 @@ def func_args_str(
         fname = func
 
     if log_args:
-        argstr = ' | %s %s' % (trunc_str('%s' % (args,)), trunc_str('%s' % (kwargs,)))
+        argstr = ' | %s %s' % (
+            trunc_str(args, max_length=max_str_len),
+            trunc_str(kwargs, max_length=max_str_len),
+        )
     else:
         argstr = ''
 

@@ -5,12 +5,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='logfunc',
-    version='1.9.0',
+    version='1.8.1',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
     author_email='ccarterdev@gmail.com',
-    description='An EASY TO USE function decorator for advanced logging of function execution, including arguments, return values, and execution time.',
+    description=(
+        'An EASY TO USE function decorator for advanced logging of function'
+        ' execution, including arguments, return values, and execution time.'
+    ),
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/cc-d/logf/tree/main',
