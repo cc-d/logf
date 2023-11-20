@@ -197,13 +197,23 @@ def print_or_log(
 
     Args:
         logmsg (str): The log message to print or log.
-        level (Optional[Union[int, str]]): The logging level to use. Defaults to logging.DEBUG.
-        use_print (bool): Should the log message be printed instead of logged? Defaults to False.
+        level (Optional[Union[int, str]]): The logging level to use.
+            Defaults to logging.DEBUG.
+        use_print (bool): Should the log message be printed instead of logged?
+            Defaults to False.
     """
+    level_int = loglevel_int(level)
+    env_level_str = os.environ.get('LOGF_LEVEL', 'DEBUG')
+    env_level_int = loglevel_int(env_level_str)
+
+    # if LOGF_PRINT_ALL is set to True
+    # always print the log message regardless of the log level
+    print_all = get_evar('LOGF_PRINT_ALL', False)
+
     if use_print:
-        print(logmsg)
+        if level_int >= env_level_int or print_all:
+            print(logmsg)
     else:
-        level_int = loglevel_int(level)
         logging.log(level_int, logmsg)
 
 

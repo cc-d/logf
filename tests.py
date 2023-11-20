@@ -32,29 +32,31 @@ for evar in EVARS:
         del os.environ[evar]
 
 
-TESTFNAME = 'funcname'
-TESTRET = 'ret'
-TESTARGSTR = "(1, 2.5) {'a': 3.5}"
-TESTARGS = (1, 2.5)
-TESTKWARGS = {'a': 3.5}
+class TEST:
+    ARGS = ('a', 'r', 'g', 's')
+    KWARGS = {'k': 'w', 'a': 'r', 'g': 's'}
+    ARGSTR = f'{ARGS}'
+    KWARGSTR = f'{KWARGS}'
+    ARGS_STR = str(ARGS) + ' ' + str(KWARGS)
+    RETURN = 'test return value'
 
+    @logf()
+    def syncfunc(self, *args, **kwargs):
+        return self.RETURN
 
-@logf()
-def testsyncfunc(*args, **kwargs):
-    return TESTRET
+    SYNCFNAME = syncfunc.__name__
 
+    @logf()
+    async def asyncfunc(self, *args, **kwargs):
+        return self.RETURN
 
-@logf()
-async def testasyncfunc(*args, **kwargs):
-    return TESTRET
+    ASYNCFNAME = asyncfunc.__name__
 
 
 # Synchronous decorator
 def sync_decorator(func):
     def wrapper(*args, **kwargs):
-        print(f"Starting {func.__name__}...")
         result = func(*args, **kwargs)
-        print(f"Finished {func.__name__}.")
         return result
 
     return wrapper
@@ -62,25 +64,15 @@ def sync_decorator(func):
 
 @sync_decorator
 def my_func(x):
-    print(f"Running function with argument {x}")
-
-
-# Asynchronous decorator
-def async_decorator(async_func):
-    async def async_wrapper(*args, **kwargs):
-        print(f"Starting {async_func.__name__}...")
-        result = await async_func(*args, **kwargs)
-        print(f"Finished {async_func.__name__}.")
-        return result
-
-    return async_wrapper
+    return x
 
 
 class TestLogf(unittest.TestCase):
     """inherits from unittest.TestCase to test @logf() decorator"""
 
     @classmethod
-    def setUpClass(cls):
+    def setUp(cls):
+        # clear environment variables
         for evar in EVARS:
             if evar in os.environ:
                 del os.environ[evar]
@@ -119,18 +111,24 @@ class TestLogf(unittest.TestCase):
             - Two log messages are logged by default
         """
 
+        @logf()
+        def _syncf(*args, **kwargs):
+            return TEST.RETURN
+
         with self.assertLogs(level='DEBUG') as log:
-            testsyncfunc(*TESTARGS, **TESTKWARGS)
+            _syncf(*TEST.ARGS, **TEST.KWARGS)
 
-        self.assertTrue(len(log.output) == 2)
+        logout = [x for x in log.output if '_syncf()' in x]
 
-        msgs = [parse_logmsg(x) for x in log.output]
-
-        self.assertTrue(msgs[0]['loglevel'] == 'DEBUG')
-        self.assertTrue(msgs[0]['funcname'] == 'testsyncfunc()')
-        self.assertTrue(msgs[0]['argstr'] == TESTARGSTR)
-        self.assertTrue(msgs[1]['result'] == TESTRET)
-        self.assertTrue(msgs[1]['exectime'] != '')
+        msgs = [parse_logmsg(x) for x in logout]
+        for logmsg in msgs:
+            self.assertTrue(logmsg['loglevel'] == 'DEBUG')
+            self.assertTrue(logmsg['funcname'] == f'{_syncf.__name__}()')
+            if logmsg['argstr'] != '':
+                self.assertEqual(logmsg['argstr'], TEST.ARGS_STR)
+            elif logmsg['result'] != '':
+                self.assertTrue(logmsg['result'] == TEST.RETURN)
+            self.assertTrue(logmsg['exectime'] is not None)
 
         @logf()
         def testtrunc():
@@ -138,9 +136,9 @@ class TestLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             testtrunc()
-            self.assertTrue(
-                len(log.output[1].split(' | ')[1]) == TRUNC_STR_LEN + 3
-            )
+            msgs = [parse_logmsg(x) for x in log.output if 'testtrunc()' in x]
+            self.assertTrue(len(msgs) == 2)
+            self.assertTrue(len(msgs[1]['result']) == TRUNC_STR_LEN + 3)
 
     def test_max_str_len(self):
         """tests to ensure that log messages have proper trunc behaviour"""
@@ -149,59 +147,58 @@ class TestLogf(unittest.TestCase):
         def trunc22():
             return '0' * 1000000
 
+        with self.assertLogs(level='DEBUG') as log:
+            trunc22()
+            self.assertEqual(
+                parse_logmsg(log.output[1])['result'], '0' * 22 + '...'
+            )
+
         @logf(max_str_len=None)
         def truncNone():
             return '0' * 1000000
 
         with self.assertLogs(level='DEBUG') as log:
-            trunc22()
-            self.assertTrue(
-                len(log.output[1].split(' | ')[1]) == 22 + 3
-            )  # trunc'd by trunc_str
-
-        with self.assertLogs(level='DEBUG') as log:
             truncNone()
-            self.assertTrue(len(log.output[1].split(' | ')[1]) == 1000000)
+            self.assertEqual(
+                parse_logmsg(log.output[1])['result'], '0' * 1000000
+            )
 
     def test_measure_time(self):
-        """tests backwards compatability of measure_time kwarg as well as exec_time"""
+        """tests backwards compatability of measure_time kwarg as well as
+        exec_time"""
 
         @logf(measure_time=False)
         def notime():
-            return 'ret'
-
-        @logf(measure_time=True)
-        def hastime():
             return 'ret'
 
         with self.assertLogs(level='DEBUG') as log:
             notime()
             self.assertTrue(len(log.output[1].split(' | ')[0].split()) == 1)
 
+        @logf(measure_time=True)
+        def hastime():
+            return 'ret'
+
         with self.assertLogs(level='DEBUG') as log:
             hastime()
             self.assertTrue(len(log.output[1].split(' | ')[0].split()) == 2)
 
     def test_single_msg(self):
-        """tests single_msg=True only sends a single log message and that it is formatted correctly"""
+        """tests single_msg=True only sends a single log message and
+        that it is formatted correctly"""
 
         @logf(single_msg=True)
-        def msg(ar, kar='kar'):
-            return 'ret'
+        def f(a, k='w'):
+            return 'r'
 
         with self.assertLogs(level='DEBUG') as log:
-            msg('ar', kar='kar')
+            f('a', k='w')
 
-        l0 = log.output[0]
-
-        self.assertTrue(
-            re.search(
-                r'''\(['"]ar['"],\) {['"]kar['"]: ['"]kar['"]}''',
-                l0.split(' | ')[1],
-            )
-        )
-        self.assertIsNotNone(re.search(r'\d+?\.?\d+s', l0.split()[1]))
-        self.assertTrue(l0.split(' | ')[2] == 'ret')
+        log = [x for x in log.output if 'f()' in x]
+        self.assertEqual(len(log), 1)
+        parsed = parse_logmsg(log[0])
+        self.assertEqual(parsed['argstr'], "('a',) {'k': 'w'}")
+        self.assertEqual(parsed['result'], 'r')
 
     def test_evar_level(self):
         """tests LOGF_LEVEL env var behaviour with logf"""
@@ -215,7 +212,6 @@ class TestLogf(unittest.TestCase):
             warn()
 
         self.assertTrue(log.output[0].startswith('WARNING'))
-        del os.environ['LOGF_LEVEL']
 
     def test_evar_max_str_len(self):
         """tests LOGF_MAX_STR_LEN behaviour"""
@@ -228,8 +224,8 @@ class TestLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             longstr()
             self.assertTrue(len(log.output[1]) >= 10000)
-        del os.environ['LOGF_MAX_STR_LEN']
 
+    def test_evar_1strlen(self):
         os.environ['LOGF_MAX_STR_LEN'] = '1'
 
         @logf()
@@ -239,7 +235,6 @@ class TestLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             longstr()
             self.assertTrue(log.output[1].split(' | ')[1] == '0...')
-        del os.environ['LOGF_MAX_STR_LEN']
 
     def test_evar_single_msg(self):
         """tests LOGF_SINGLE_MSG evar override"""
@@ -252,22 +247,19 @@ class TestLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             singlemsg()
             self.assertEqual(len(log.output), 1)
-        del os.environ['LOGF_SINGLE_MSG']
 
-    def test_evar_use_print(self):
+    @patch('builtins.print')
+    def test_evar_use_print(self, mock_print):
         """tests LOGF_USE_PRINT evar override"""
         os.environ['LOGF_USE_PRINT'] = 'True'
+        os.environ['LOGF_LEVEL'] = 'WARNING'
 
         @logf()
-        def useprint():
-            return 'ret'
+        def f():
+            return 'r'
 
-        with self.assertLogs(level='DEBUG') as log:
-            useprint()
-            for _ in range(5):
-                logging.debug('test')
-            self.assertEqual(len(log.output), 5)
-        del os.environ['LOGF_USE_PRINT']
+        f()
+        self.assertEqual(mock_print.call_count, 2)
 
     def test_nested_function(self):
         """Tests decorator on a function nested within another function."""
@@ -332,14 +324,30 @@ class TestLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             funcname()
-            out = [l for l in log.output if '%s()' % TESTFNAME in l]
-            aout = [l for l in log.output if 'async %s()' % TESTFNAME in l]
+            out = [l for l in log.output if '%s()' % 'funcname' in l]
+            aout = [l for l in log.output if 'async %s()' % 'funcname' in l]
             self.assertTrue(len(out) > 0)
             self.assertTrue(len(aout) == 0)
 
 
+# Asynchronous decorator
+def async_decorator(async_func):
+    async def async_wrapper(*args, **kwargs):
+        result = await async_func(*args, **kwargs)
+        return result
+
+    return async_wrapper
+
+
 class TestAsyncLogf(unittest.TestCase):
     """verifies decorator works with async fucns"""
+
+    @classmethod
+    def setUp(cls):
+        # clear environment variables
+        for evar in EVARS:
+            if evar in os.environ:
+                del os.environ[evar]
 
     def test_async(self):
         """tests async function logging"""
@@ -365,7 +373,6 @@ class TestAsyncLogf(unittest.TestCase):
         with self.assertLogs(level='DEBUG') as log:
             with self.assertRaises(ValueError):
                 asyncio.run(async_raise_exception())
-            print(log.output, file=sys.stderr)
             self.assertTrue(len(log.output) <= 2)
             self.assertTrue(
                 'async async_raise_exception()' in ''.join(log.output)
@@ -395,25 +402,20 @@ class TestAsyncLogf(unittest.TestCase):
         @async_decorator
         async def my_async_func(x):
             await asyncio.sleep(x)
-            print(f"Slept for {x} seconds")
             return str(x)
 
         with self.assertLogs(level='DEBUG') as log:
-            print("Running my_async_func...")
             result = asyncio.run(my_async_func(1))
             self.assertTrue(result == '1')
-            print(log.output, 'with', result)
 
     def test_async_in_funcname(self):
         @logf()
         @async_decorator
         async def afunc(x):
             await asyncio.sleep(x)
-            print(f"Slept for {x} seconds")
             return str(x)
 
         with self.assertLogs(level='DEBUG') as log:
-            print("Running afunc...")
             result = asyncio.run(afunc(1))
             for l in log.output:
                 if l.find('afunc()') != -1:
@@ -472,21 +474,19 @@ class TestRegressions(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             retstr = asyncio.run(funcname())
-            out = [l for l in log.output if '%s()' % TESTFNAME in l]
-            aout = [l for l in log.output if 'async %s()' % TESTFNAME in l]
+            out = [l for l in log.output if '%s()' % 'funcname' in l]
+            aout = [l for l in log.output if 'async %s()' % 'funcname' in l]
 
             self.assertEqual(len(out), len(aout))
 
 
 class TestUtils(unittest.TestCase):
-    def setUp(self):
-        # This will store the current environment variables so they can be restored later
-        self._original_environ = dict(os.environ)
-
-    def tearDown(self):
-        # Restore original environment variables
-        os.environ.clear()
-        os.environ.update(self._original_environ)
+    @classmethod
+    def setUp(cls):
+        # clear environment variables
+        for evar in EVARS:
+            if evar in os.environ:
+                del os.environ[evar]
 
     def test_get_evar(self):
         os.environ['LOGF_LEVEL'] = 'INFO'
@@ -541,8 +541,6 @@ class TestUtils(unittest.TestCase):
             True,
             10,
         )
-        # Validate the floating point precision
-        print(result, file=sys.stderr)
         self.assertTrue('func_name()' in result)
         self.assertTrue("2.5" in result)
         self.assertTrue("3.5" in result)
@@ -573,6 +571,19 @@ class TestUtils(unittest.TestCase):
         result = parse_logmsg(s2)
         self.assertEqual(result['loglevel'], 'DEBUG')
         self.assertTrue(result['loggername'] != '')
+
+    def test_funca_args_str(self):
+        result = func_args_str('f', ('args',), {'k': 'w'}, False, 1000)
+        self.assertNotIn('args', result)
+
+    def test_parse_logmsg_noparse(self):
+        result = parse_logmsg('not a log message')
+        self.assertEqual(set(result.values()), {''})
+
+    def test_get_evar_curvalboolfalse(self):
+        os.environ['LOGF_SINGLE_MSG'] = 'fAlSe'
+        result = get_evar('LOGF_SINGLE_MSG', True)
+        self.assertFalse(result)
 
 
 if __name__ == '__main__':

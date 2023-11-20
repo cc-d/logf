@@ -1,6 +1,6 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.8.1
+### CURRENT VERSION: v1.8.2
 
 ### Last Change: Fixed bug with args/kwarg truncation and added tests/regression tests for fixed behaviour
 
@@ -9,14 +9,14 @@
 I originally made `@logf()` for my own use, but I hope it can be useful to others as well.
 
 ## Highlights
+
 - **Async Support**: Incorporated from version 1.6 onwards.
-- **Broad Python 3 Compatibility**: Designed to work seamlessly across multiple Python 3 versions.
+- **Broad Python 3 Compatibility**: Designed to work seamlessly across multiple Python 3 versions,
 - **Effortless Logging**: Implement logging without disrupting the flow of your code.
 - **Leave-and-Forget**: Once integrated, no further adjustments are needed.
 - **Encourages Logic Compartmentalization**.
 - **Customizable**: Numerous settings available for tailoring logging behavior to specific needs.
 - **Environment Variables**: Overriding default settings made easy with environment variables.
-
 
 ## Usage
 
@@ -58,17 +58,19 @@ This setup ensures automatic logging of function name, parameters, return values
 - `log_exec_time`: Option to log the execution time.
 - `single_msg`: Consolidate all log data into a single message.
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
+- `print_all`: Print all log messages, regardless of log level.
 
 ### Environment Variables
 
 Modify the behavior of `@logf()` using environment variables:
 
 | Env Var          | Example Values       |
-|------------------|----------------------|
+| ---------------- | -------------------- |
 | LOGF_LEVEL       | DEBUG, INFO, WARNING |
 | LOGF_MAX_STR_LEN | 10, 50, 10000000     |
 | LOGF_SINGLE_MSG  | True, False          |
 | LOGF_USE_PRINT   | True, False          |
+| PRINT_ALL        | True, False          |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
@@ -129,11 +131,30 @@ async def fetch_data(url):
 
 ## Testing
 
-To ensure reliability, `@logf()` comes equipped with a test suite. To run the tests:
+Activate/create your venv with `python3 -m venv venv` and `source venv/bin/activate` if you haven't already.
+
+Run `pip install -r requirements_dev.txt` to install the testing dependencies.
+
+Run `./run_tests-multi.sh` to run the tests.
+
+Output should look like this:
 
 ```sh
-python tests.py
+---------- coverage: platform darwin, python 3.11.5-final-0 ----------
+Name                  Stmts   Miss  Cover   Missing
+---------------------------------------------------
+logfunc/__init__.py       1      0   100%
+logfunc/config.py         2      0   100%
+logfunc/main.py          47      0   100%
+logfunc/utils.py         89      0   100%
+---------------------------------------------------
+TOTAL                   139      0   100%
+
+
+===================== 31 passed in 2.34s =====================
 ```
+
+You can also just run the `tests.py` file directly.
 
 ## Contributing
 
