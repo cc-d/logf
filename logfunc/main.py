@@ -21,10 +21,6 @@ from .utils import (
     trunc_str,
 )
 
-logger = logging.getLogger(__name__)
-
-T = TypeVar("T", bound=Callable[..., Any])
-
 
 def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
@@ -34,6 +30,7 @@ def logf(
     log_exec_time: bool = True,
     single_msg: bool = False,
     use_print: bool = False,
+    use_logger: Optional[logging.Logger] = None,
     **kwargs
 ) -> Callable[..., Callable[..., Any]]:
     """
@@ -55,6 +52,8 @@ def logf(
             Default False
         use_print (bool): Should the log messages be printed instead of logged?
             Default False
+        use_logger (logging.Logger): The logger to use for logging.
+            Defaults to None. If None, logging.log is used.
 
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
@@ -82,7 +81,7 @@ def logf(
                     logmsg_enter = func_args_str(
                         func, args, kwargs, log_args, max_str_len
                     )
-                    print_or_log(logmsg_enter, level, use_print)
+                    print_or_log(logmsg_enter, level, use_print, use_logger)
 
                 result = await func(*args, **kwargs)
                 logmsg_exit = func_return_str(
@@ -96,7 +95,7 @@ def logf(
                     single_msg,
                     max_str_len,
                 )
-                print_or_log(logmsg_exit, level, use_print)
+                print_or_log(logmsg_exit, level, use_print, use_logger)
                 return result
 
         # handle sync funcs
@@ -115,7 +114,7 @@ def logf(
                         func, args, kwargs, log_args, max_str_len
                     )
 
-                    print_or_log(logmsg_enter, level, use_print)
+                    print_or_log(logmsg_enter, level, use_print, use_logger)
 
                 result = func(*args, **kwargs)
                 logmsg_exit = func_return_str(
@@ -131,7 +130,7 @@ def logf(
                 )
 
                 # Log the return value and execution time if required
-                print_or_log(logmsg_exit, level, use_print)
+                print_or_log(logmsg_exit, level, use_print, use_logger)
 
                 return result
 

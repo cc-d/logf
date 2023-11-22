@@ -585,6 +585,22 @@ class TestUtils(unittest.TestCase):
         result = get_evar('LOGF_SINGLE_MSG', True)
         self.assertFalse(result)
 
+    def test_custom_logger(self):
+        """tests that a custom logger can be passed to logf"""
+        logger = logging.getLogger('test_logger')
+        logger.setLevel(logging.DEBUG)
+        stream = StringIO()
+        handler = logging.StreamHandler(stream)
+        handler.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+
+        @logf(use_logger=logger)
+        def f():
+            return 'ret'
+
+        f()
+        self.assertTrue('f()' in stream.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()

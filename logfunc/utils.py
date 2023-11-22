@@ -191,6 +191,7 @@ def print_or_log(
     logmsg: str,
     level: Optional[Union[int, str]] = logging.DEBUG,
     use_print: bool = False,
+    use_logger: Optional[logging.Logger] = None,
 ) -> None:
     """
     Prints or logs the log message.
@@ -201,6 +202,8 @@ def print_or_log(
             Defaults to logging.DEBUG.
         use_print (bool): Should the log message be printed instead of logged?
             Defaults to False.
+        use_logger (Optional[logging.Logger]): The logger to use for logging.
+            Defaults to None. If None, logging.log is used.
     """
     level_int = loglevel_int(level)
     env_level_str = os.environ.get('LOGF_LEVEL', 'DEBUG')
@@ -214,7 +217,10 @@ def print_or_log(
         if level_int >= env_level_int or print_all:
             print(logmsg)
     else:
-        logging.log(level_int, logmsg)
+        if use_logger is None:
+            logging.log(level_int, logmsg)
+        else:
+            use_logger.log(level_int, logmsg)
 
 
 def parse_logmsg(msg: str) -> Dict[str, str]:
