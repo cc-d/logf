@@ -25,6 +25,101 @@ from logfunc.utils import (
     trunc_str,
 )
 
+
+def d():
+    """debug func type for manual testing"""
+
+    @logf()
+    def debug():
+        return 'debug'
+
+    @logf(level='INFO')
+    def info(info: str = 'info'):
+        return info
+
+    @logf(level='WARNING')
+    def warn(warn: str = 'warn'):
+        return warn
+
+    @logf(level='ERROR')
+    def error(error: str = 'error'):
+        return error
+
+    @logf(level='CRITICAL')
+    def critical(critical: str = 'critical'):
+        return critical
+
+    @logf(level='DEBUG', log_args=False)
+    def no_args():
+        return 'no_args'
+
+    @logf(level='DEBUG', log_return=False)
+    def no_return():
+        return 'no_return'
+
+    @logf(level='DEBUG', log_exec_time=False)
+    def no_exec_time():
+        return 'no_exec_time'
+
+    @logf(level='DEBUG', single_msg=True)
+    def single_msg():
+        return 'single_msg'
+
+    @logf(level='DEBUG', use_print=True)
+    def use_print():
+        return 'use_print'
+
+    @logf(level='DEBUG', use_logger='test_logger')
+    def use_logger():
+        return 'use_logger'
+
+    @logf(level='WARNING', use_print=True)
+    def use_print_warning():
+        return 'use_print_warning'
+
+    @logf(level='DEBUG', max_str_len=10)
+    def max_str_len():
+        return 'max_str_len'
+
+    @logf(level='DEBUG', max_str_len=None)
+    def max_str_len_none():
+        return 'max_str_len_none'
+
+    @logf(level='DEBUG', max_str_len=10, log_args=False)
+    def max_str_len_no_args():
+        return 'max_str_len_no_args'
+
+    @logf(level='DEBUG', max_str_len=10, log_return=False)
+    def max_str_len_no_return():
+        return 'max_str_len_no_return'
+
+    @logf(level='DEBUG', max_str_len=10, log_exec_time=False)
+    def max_str_len_no_exec_time():
+        return 'max_str_len_no_exec_time'
+
+    # Execute each function to test different logging scenarios
+    for func in [
+        debug,
+        info,
+        warn,
+        error,
+        critical,
+        no_args,
+        no_return,
+        no_exec_time,
+        single_msg,
+        use_print,
+        use_logger,
+        max_str_len,
+        max_str_len_none,
+        max_str_len_no_args,
+        max_str_len_no_return,
+        max_str_len_no_exec_time,
+        use_print_warning,
+    ]:
+        func()
+
+
 logging.basicConfig(level=logging.DEBUG)
 
 for evar in EVARS:
@@ -204,14 +299,15 @@ class TestLogf(unittest.TestCase):
         """tests LOGF_LEVEL env var behaviour with logf"""
         os.environ['LOGF_LEVEL'] = 'warning'
 
-        @logf()
+        @logf(level='critical')
         def warn():
             return 'ret'
 
         with self.assertLogs(level='WARNING') as log:
             warn()
 
-        self.assertTrue(log.output[0].startswith('WARNING'))
+        log = [x for x in log.output if 'warn()' in x]
+        self.assertTrue(len(log) >= 2)
 
     def test_evar_max_str_len(self):
         """tests LOGF_MAX_STR_LEN behaviour"""
@@ -254,7 +350,7 @@ class TestLogf(unittest.TestCase):
         os.environ['LOGF_USE_PRINT'] = 'True'
         os.environ['LOGF_LEVEL'] = 'WARNING'
 
-        @logf()
+        @logf(level='CRITICAL')
         def f():
             return 'r'
 
@@ -600,6 +696,70 @@ class TestUtils(unittest.TestCase):
 
         f()
         self.assertTrue('f()' in stream.getvalue())
+
+    @patch('logfunc.utils.decide_logfunc')
+    def test_logf_level_regression(self, mock_decider):
+        """Test that logf only prints messages at or above
+        the LOGF_LEVEL set in the environment.
+        """
+        os.environ['LOGF_LEVEL'] = 'WARNING'
+
+        @logf(level='INFO')
+        def f():
+            return 'r'
+
+        f()
+        self.assertTrue(mock_decider.not_called())
+
+    @patch('logfunc.utils.decide_logfunc')
+    def test_print_or_log_level_check(self, mock_decide_logfunc):
+        """
+        Test that messages with a level lower than LOGF_LEVEL are not printed or logged.
+        """
+        os.environ['LOGF_LEVEL'] = 'ERROR'  # Setting a high log level
+
+        print_or_log("Test Message", level="DEBUG")  # Lower level message
+        mock_decide_logfunc.assert_not_called()  # The logger function should not be called
+
+        del os.environ['LOGF_LEVEL']  # Reset environment variable
+
+    @patch('builtins.print')
+    def test_print_or_log_use_print(self, mock_print):
+        """
+        Test that the log message is printed when use_print is True.
+        """
+        print_or_log("Test Message", level="DEBUG", use_print=True)
+        self.assertTrue(mock_print.called)
+
+    @patch('logging.getLogger')
+    def test_print_or_log_with_string_logger(self, mock_get_logger):
+        """
+        Test that getLogger is called when a string is passed to use_logger in print_or_log.
+        """
+        logger_name = 'test_logger'
+        print_or_log("Test Message", level="DEBUG", use_logger=logger_name)
+        mock_get_logger.assert_called_once_with(logger_name)
+
+    def test_print_or_log_return_function(self):
+        """
+        Test that print_or_log returns the correct logging function based on the conditions.
+        """
+        # Case 1: No logger, expect return of logging.log
+        returned_func = print_or_log("Test Message", level="DEBUG")
+        self.assertEqual(returned_func, logging.log)
+
+        # Case 2: With custom logger object
+        custom_logger = logging.getLogger('custom_logger')
+        returned_func = print_or_log(
+            "Test Message", level="DEBUG", use_logger=custom_logger
+        )
+        self.assertEqual(returned_func, custom_logger.log)
+
+        # Case 3: With print option
+        returned_func = print_or_log(
+            "Test Message", level="DEBUG", use_print=True
+        )
+        self.assertEqual(returned_func, print)
 
 
 if __name__ == '__main__':

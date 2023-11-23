@@ -23,42 +23,42 @@ from .utils import (
 
 
 def logf(
-    level: Optional[Union[int, str]] = logging.DEBUG,
+    level: Optional[Union[int, str]] = None,
     log_args: bool = True,
     log_return: bool = True,
     max_str_len: Optional[int] = TRUNC_STR_LEN,
     log_exec_time: bool = True,
     single_msg: bool = False,
     use_print: bool = False,
-    use_logger: Optional[logging.Logger] = None,
+    use_logger: Optional[Union[logging.Logger, str]] = None,
     **kwargs
 ) -> Callable[..., Callable[..., Any]]:
-    """
-    A decorator that logs the execution time, function name, arguments, keyword arguments,
-    and return value of a function using a specified log level.
+    """A highly customizable function decorator meant for effortless
+    leave-and-forget logging of function calls, both synchronous and
+    asynchronous. Logs the function name, arguments, return value and
+    execution time.
 
     Args:
-        level (Union[int, str]): The log level to use for logging.
+        level (Optional[Union[int, str]]): The logging level to use.
             Defaults to logging.DEBUG.
         log_args (bool): Should the function arguments be logged?
             Defaults to True.
         log_return (bool): Should function return be logged?
             Defaults to True.
-        max_str_len (Optional[int]): Maximum length of the logged arguments and return values.
-            Defaults to 1000.
+        max_str_len (Optional[int]): The maximum length of the logged arguments
+            Defaults to 500 otherwise LOGF_MAX_STR_LEN env var is used.
         log_exec_time (bool): Should the function execution time be measured?
             Defaults to True.
         single_msg (bool): Should both enter and exit log messages be combined into a single message?
             Default False
         use_print (bool): Should the log messages be printed instead of logged?
             Default False
-        use_logger (logging.Logger): The logger to use for logging.
-            Defaults to None. If None, logging.log is used.
+        use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
+            to use for logging. Defaults to None. If None, logging.log is used.
 
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
     """
-    level = get_evar('LOGF_LEVEL', level)
     max_str_len = get_evar('LOGF_MAX_STR_LEN', max_str_len)
     single_msg = get_evar('LOGF_SINGLE_MSG', single_msg)
     use_print = get_evar('LOGF_USE_PRINT', use_print)

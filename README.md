@@ -1,8 +1,8 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.8.3
+### CURRENT VERSION: v1.9.1
 
-### Last Change: Added custom logger support
+### Last Change: Added custom logger/name support, 100% test coverage, and fixed issue with use_print env var
 
 `@logf()` is a Python decorator designed for uncomplicated and immediate addition of logging to functions. Its main goal is to provide developers with a tool that can be added quickly to any function and left in place without further adjustments.
 
@@ -58,7 +58,8 @@ This setup ensures automatic logging of function name, parameters, return values
 - `log_exec_time`: Option to log the execution time.
 - `single_msg`: Consolidate all log data into a single message.
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
-- `print_all`: Print all log messages, regardless of log level.
+
+**print_all** used to be an env var, now just unset LOGF_LEVEL and set USE_PRINT=True for the same effect.
 
 ### Environment Variables
 
@@ -70,7 +71,6 @@ Modify the behavior of `@logf()` using environment variables:
 | LOGF_MAX_STR_LEN | 10, 50, 10000000     |
 | LOGF_SINGLE_MSG  | True, False          |
 | LOGF_USE_PRINT   | True, False          |
-| PRINT_ALL        | True, False          |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
@@ -145,13 +145,13 @@ Name                  Stmts   Miss  Cover   Missing
 ---------------------------------------------------
 logfunc/__init__.py       1      0   100%
 logfunc/config.py         2      0   100%
-logfunc/main.py          47      0   100%
-logfunc/utils.py         89      0   100%
+logfunc/main.py          45      0   100%
+logfunc/utils.py        100      0   100%
 ---------------------------------------------------
-TOTAL                   139      0   100%
+TOTAL                   148      0   100%
 
 
-===================== 31 passed in 2.34s =====================
+=====================  37 passed in 1.51s =====================
 ```
 
 You can also just run the `tests.py` file directly.

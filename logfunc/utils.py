@@ -21,6 +21,7 @@ def get_evar(evar: str, curval: any) -> any:
     Returns:
         any: what to use for the value for the equivalent parameter LOGF_x evar is referring to.
     """
+
     val = os.environ.get(evar, None)
     if val is None:
         return curval
@@ -40,10 +41,9 @@ def get_evar(evar: str, curval: any) -> any:
                 curval = None
     elif evar in ['LOGF_SINGLE_MSG', 'LOGF_USE_PRINT']:
         val = str(val).upper()
-        if val == 'TRUE':
-            curval = True
-        elif val == 'FALSE':
-            curval = False
+        if val in ['TRUE', 'FALSE']:
+            curval = val == 'TRUE'
+
     return curval
 
 
@@ -187,40 +187,62 @@ def loglevel_int(level: Optional[Union[int, str]] = logging.DEBUG) -> int:
     return level_int
 
 
+def decide_logfunc(
+    use_logger: Optional[Union[logging.Logger, str]] = None
+) -> Callable:
+    """Decides whether to use logging.log or logger.log based on the use_logger
+    parameter.
+
+    Args:
+        use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
+            to use for logging. Defaults to None. If None, logging.log is used.
+
+    Returns:
+        Callable: The function to use for logging.
+    """
+    if use_logger is None:
+        return logging.log
+    elif isinstance(use_logger, str):
+        return logging.getLogger(use_logger).log
+    else:
+        return use_logger.log
+
+
 def print_or_log(
     logmsg: str,
     level: Optional[Union[int, str]] = logging.DEBUG,
     use_print: bool = False,
     use_logger: Optional[logging.Logger] = None,
-) -> None:
-    """
-    Prints or logs the log message.
-
+) -> Union[Callable, None]:
+    """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
+    LOGF_LEVEL, and LOGF_PRINT_ALL environment variables.
     Args:
         logmsg (str): The log message to print or log.
         level (Optional[Union[int, str]]): The logging level to use.
-            Defaults to logging.DEBUG.
-        use_print (bool): Should the log message be printed instead of logged?
-            Defaults to False.
-        use_logger (Optional[logging.Logger]): The logger to use for logging.
+            Defaults to logging.INFO.
+        use_print (bool): Should the log messages be printed instead of logged?
+            Default False
+        use_logger (logging.Logger): The logger to use for logging.
             Defaults to None. If None, logging.log is used.
+    Returns:
+        Callable: The function used to print/log
     """
-    level_int = loglevel_int(level)
-    env_level_str = os.environ.get('LOGF_LEVEL', 'DEBUG')
-    env_level_int = loglevel_int(env_level_str)
+    if level is None:
+        level = logging.DEBUG
 
-    # if LOGF_PRINT_ALL is set to True
-    # always print the log message regardless of the log level
-    print_all = get_evar('LOGF_PRINT_ALL', False)
+    level_int = loglevel_int(level)
+    env_level_int = loglevel_int(get_evar('LOGF_LEVEL', 'DEBUG'))
+
+    # if level is lower than env_level, don't print/log
+    if env_level_int - level_int > 0:
+        return None
 
     if use_print:
-        if level_int >= env_level_int or print_all:
-            print(logmsg)
-    else:
-        if use_logger is None:
-            logging.log(level_int, logmsg)
-        else:
-            use_logger.log(level_int, logmsg)
+        print(logmsg)
+        return print
+    the_logfunc = decide_logfunc(use_logger)
+    the_logfunc(level_int, logmsg)
+    return the_logfunc  # mighty
 
 
 def parse_logmsg(msg: str) -> Dict[str, str]:
