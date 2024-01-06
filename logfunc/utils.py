@@ -5,9 +5,18 @@ import re
 import sys
 import time
 import traceback
-from inspect import iscoroutinefunction
-from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union
-
+import inspect as _insp
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    Iterable,
+    Coroutine,
+)
 from .config import TRUNC_STR_LEN
 
 
@@ -95,7 +104,9 @@ def func_args_str(
     """
     if not isinstance(func, str):
         fname = func.__name__
-        fname = 'async %s' % fname if iscoroutinefunction(func) else fname
+        fname = (
+            'async %s' % fname if _insp.iscoroutinefunction(func) else fname
+        )
     else:
         fname = func
 
@@ -111,7 +122,7 @@ def func_args_str(
 
 
 def func_return_str(
-    func: Callable,
+    func: Callable | Coroutine,
     args: tuple,
     kwargs: dict,
     result: any,
@@ -143,15 +154,15 @@ def func_return_str(
     """
 
     if not isinstance(func, str):
-        if iscoroutinefunction(func):
-            fname = 'async %s()' % func.__name__
+        fname = '%s()' % func.__name__
+        if _insp.iscoroutinefunction(func):
+            fname = 'async %s' % fname
             exec_time = (
                 asyncio.get_event_loop().time() - start_time
                 if start_time
                 else None
             )
         else:
-            fname = '%s()' % func.__name__
             exec_time = time.time() - start_time if start_time else None
     else:
         exec_time = time.time() - start_time if start_time else None
@@ -170,21 +181,22 @@ def func_return_str(
     return logmsg
 
 
-def loglevel_int(level: Optional[Union[int, str]] = logging.DEBUG) -> int:
+def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
     """
     Returns the logging level as an int.
 
     Args:
-        level (Optional[Union[int, str]]): The logging level to use. Defaults to logging.DEBUG.
+        level (Union[int, str]]): The logging level to use.
+            Defaults to logging.DEBUG.
 
     Returns:
         int: The logging level as an int.
     """
-    if isinstance(level, str):
-        level_int = logging.getLevelName(level.upper())
-    else:
-        level_int = int(level)
-    return level_int
+    if level is None:
+        return logging.DEBUG
+    elif isinstance(level, str):
+        return logging.getLevelName(level.upper())
+    return int(level)
 
 
 def decide_logfunc(
@@ -204,8 +216,7 @@ def decide_logfunc(
         return logging.log
     elif isinstance(use_logger, str):
         return logging.getLogger(use_logger).log
-    else:
-        return use_logger.log
+    return use_logger.log
 
 
 def print_or_log(
@@ -227,25 +238,27 @@ def print_or_log(
     Returns:
         Callable: The function used to print/log
     """
-    if level is None:
-        level = logging.DEBUG
-
     level_int = loglevel_int(level)
     env_level_int = loglevel_int(get_evar('LOGF_LEVEL', 'DEBUG'))
 
     # if level is lower than env_level, don't print/log
     if env_level_int - level_int > 0:
         return None
-
-    if use_print:
+    elif use_print:
         print(logmsg)
         return print
-    the_logfunc = decide_logfunc(use_logger)
-    the_logfunc(level_int, logmsg)
-    return the_logfunc  # mighty
+
+    use_log_func = decide_logfunc(use_logger)
+    use_log_func(level_int, logmsg)
+    return use_log_func
 
 
 def parse_logmsg(msg: str) -> Dict[str, str]:
+    """Parses a log message into a dictionary. Assuming the log message
+    follows the default log message format of:
+        name() | (args) {kwargs}
+        name() 0.0001s | result
+    """
     pattern = (
         r'(?:(?P<loglevel>\w+):(?P<loggername>\w+):)?'
         r'(?P<funcname>\w+\(\))'

@@ -1,6 +1,6 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.9.1
+### CURRENT VERSION: v1.9.2
 
 ### Last Change: Added custom logger/name support, 100% test coverage, and fixed issue with use_print env var
 

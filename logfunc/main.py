@@ -1,5 +1,5 @@
 import asyncio
-import inspect
+import inspect as _insp
 import logging
 import os
 import random
@@ -9,7 +9,16 @@ import sys
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    TypeVar,
+    Union,
+    Dict,
+    Iterable,
+    Coroutine,
+)
 
 from .config import TRUNC_STR_LEN
 from .utils import (
@@ -32,7 +41,7 @@ def logf(
     use_print: bool = False,
     use_logger: Optional[Union[logging.Logger, str]] = None,
     **kwargs
-) -> Callable[..., Callable[..., Any]]:
+) -> Union[Callable[..., Any], Coroutine[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
@@ -49,8 +58,8 @@ def logf(
             Defaults to 500 otherwise LOGF_MAX_STR_LEN env var is used.
         log_exec_time (bool): Should the function execution time be measured?
             Defaults to True.
-        single_msg (bool): Should both enter and exit log messages be combined into a single message?
-            Default False
+        single_msg (bool): Should both enter and exit log messages be combined
+            into a single message? Default False
         use_print (bool): Should the log messages be printed instead of logged?
             Default False
         use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
@@ -70,7 +79,7 @@ def logf(
 
     def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
         # handle async funcs
-        if inspect.iscoroutinefunction(func):
+        if _insp.iscoroutinefunction(func):
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
