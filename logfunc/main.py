@@ -40,6 +40,8 @@ def logf(
     single_msg: bool = False,
     use_print: bool = False,
     use_logger: Optional[Union[logging.Logger, str]] = None,
+    log_exc_info: bool = False,
+    log_stack_info: bool = False,
     **kwargs
 ) -> Union[Callable[..., Any], Coroutine[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
@@ -64,6 +66,10 @@ def logf(
             Default False
         use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
             to use for logging. Defaults to None. If None, logging.log is used.
+        log_exc_info (bool): exc_info kwarg for logging.log
+            Defaults to False.
+        log_stack_info (bool): stack_info kwarg for logging.log
+            Defaults to False
 
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
@@ -90,7 +96,14 @@ def logf(
                     logmsg_enter = func_args_str(
                         func, args, kwargs, log_args, max_str_len
                     )
-                    print_or_log(logmsg_enter, level, use_print, use_logger)
+                    print_or_log(
+                        logmsg_enter,
+                        level,
+                        use_print,
+                        use_logger,
+                        log_exc_info=log_exc_info,
+                        log_stack_info=log_stack_info,
+                    )
 
                 result = await func(*args, **kwargs)
                 logmsg_exit = func_return_str(
@@ -104,7 +117,14 @@ def logf(
                     single_msg,
                     max_str_len,
                 )
-                print_or_log(logmsg_exit, level, use_print, use_logger)
+                print_or_log(
+                    logmsg_exit,
+                    level,
+                    use_print,
+                    use_logger,
+                    log_exc_info=log_exc_info,
+                    log_stack_info=log_stack_info,
+                )
                 return result
 
         # handle sync funcs
@@ -123,7 +143,14 @@ def logf(
                         func, args, kwargs, log_args, max_str_len
                     )
 
-                    print_or_log(logmsg_enter, level, use_print, use_logger)
+                    print_or_log(
+                        logmsg_enter,
+                        level,
+                        use_print,
+                        use_logger,
+                        log_exc_info=log_exc_info,
+                        log_stack_info=log_stack_info,
+                    )
 
                 result = func(*args, **kwargs)
                 logmsg_exit = func_return_str(
@@ -139,7 +166,14 @@ def logf(
                 )
 
                 # Log the return value and execution time if required
-                print_or_log(logmsg_exit, level, use_print, use_logger)
+                print_or_log(
+                    logmsg_exit,
+                    level,
+                    use_print,
+                    use_logger,
+                    log_exc_info=log_exc_info,
+                    log_stack_info=log_stack_info,
+                )
 
                 return result
 
