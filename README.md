@@ -2,7 +2,7 @@
 
 ### CURRENT VERSION: v1.9.3
 
-### Last Change: Added support for passing exc_info and stack_info to .log() (but not print lol)
+### Last Change: Added support for passing exc_info and stack_info to .log() (but not print lol...)
 
 `@logf()` is a Python decorator designed for uncomplicated and immediate addition of logging to functions. Its main goal is to provide developers with a tool that can be added quickly to any function and left in place without further adjustments.
 
