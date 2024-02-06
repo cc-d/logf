@@ -10,7 +10,7 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Optional,
+    Optional as Opt,
     Tuple,
     TypeVar,
     Union,
@@ -57,7 +57,7 @@ def get_evar(evar: str, curval: any) -> any:
 
 
 def trunc_str(
-    tstr: Any, max_length: Optional[Union[int, None]] = TRUNC_STR_LEN
+    tstr: Any, max_length: Opt[Union[int, None]] = TRUNC_STR_LEN
 ) -> str:
     """Truncates a string if its length exceeds the specified maximum length.
     If the string is truncated, it appends '...' to indicate the truncation. If
@@ -66,7 +66,7 @@ def trunc_str(
 
     Args:
         tstr (Any): The object/str to truncate.
-        max_length (Optional[int | None]): The maximum length of the truncated string.
+        max_length (Opt[int | None]): The maximum length of the truncated str
             Defaults to 1000.
 
     Returns:
@@ -86,7 +86,7 @@ def func_args_str(
     args: tuple,
     kwargs: dict,
     log_args: bool = True,
-    max_str_len: Optional[int] = TRUNC_STR_LEN,
+    max_str_len: Opt[int] = TRUNC_STR_LEN,
 ) -> str:
     """
     Creates the log message for entering a function.
@@ -96,7 +96,7 @@ def func_args_str(
         args (tuple): The arguments passed to the function.
         kwargs (dict): The keyword arguments passed to the function.
         log_args (bool): Should the arguments be logged? Defaults to True.
-        max_str_len (Optional[int]): The maximum length of the logged arguments.
+        max_str_len (Opt[int]): The maximum length of the logged arguments.
             Defaults to 1000.
 
     Returns:
@@ -122,15 +122,15 @@ def func_args_str(
 
 
 def func_return_str(
-    func: Callable | Coroutine,
+    func: Union[Callable, Coroutine],
     args: tuple,
     kwargs: dict,
     result: any,
-    start_time: Optional[float] = None,
+    start_time: Opt[float] = None,
     log_args: bool = True,
     log_return: bool = True,
     single_msg: bool = False,
-    max_str_len: Optional[int] = TRUNC_STR_LEN,
+    max_str_len: Opt[int] = TRUNC_STR_LEN,
 ) -> str:
     """Creates the 2nd log message containing the return value of the function
     and/or the execution time of the function and/or the function args if single_msg
@@ -141,13 +141,13 @@ def func_return_str(
         args (tuple): The arguments passed to the function.
         kwargs (dict): The keyword arguments passed to the function.
         result (any): The return value of the function.
-        start_time (Optional[float]): The time the function started executing.
+        start_time (Opt[float]): The time the function started executing.
             Defaults to None.
         log_args (bool): Should the arguments be logged? Defaults to True.
         log_return (bool): Should the return value be logged? Defaults to True.
         single_msg (bool): Should the enter and exit log messages be combined into
             a single message? Defaults to False.
-        max_str_len (Optional[int]): The maximum length of the logged arguments.
+        max_str_len (Opt[int]): The maximum length of the logged arguments.
 
     Returns:
         str: The exit log message.
@@ -200,13 +200,13 @@ def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
 
 
 def decide_logfunc(
-    use_logger: Optional[Union[logging.Logger, str]] = None
+    use_logger: Opt[Union[logging.Logger, str]] = None
 ) -> Callable:
     """Decides whether to use logging.log or logger.log based on the use_logger
     parameter.
 
     Args:
-        use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
+        use_logger (Opt[Union[logging.Logger, str]]): logger/logger name
             to use for logging. Defaults to None. If None, logging.log is used.
 
     Returns:
@@ -221,9 +221,9 @@ def decide_logfunc(
 
 def print_or_log(
     logmsg: str,
-    level: Optional[Union[int, str]] = logging.DEBUG,
+    level: Opt[Union[int, str]] = logging.DEBUG,
     use_print: bool = False,
-    use_logger: Optional[logging.Logger] = None,
+    use_logger: Opt[logging.Logger] = None,
     log_exc_info: bool = False,
     log_stack_info: bool = False,
 ) -> Union[Callable, None]:
@@ -231,7 +231,7 @@ def print_or_log(
     LOGF_LEVEL, and LOGF_PRINT_ALL environment variables.
     Args:
         logmsg (str): The log message to print or log.
-        level (Optional[Union[int, str]]): The logging level to use.
+        level (Opt[Union[int, str]]): The logging level to use.
             Defaults to logging.INFO.
         use_print (bool): Should the log messages be printed instead of logged?
             Default False
