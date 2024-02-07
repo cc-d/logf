@@ -97,7 +97,7 @@ def logf(
             elif ev == 'LOGF_LOG_EXCEPTION':
                 log_exception = _ev.lower() == 'true'
 
-    def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
+    def wrapper(func: Any) -> U[Call, Co]:
         # handle async funcs
         if _insp.iscoroutinefunction(func):
 
