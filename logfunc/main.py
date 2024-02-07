@@ -29,10 +29,10 @@ from .defaults import TRUNC_STR_LEN
 
 
 def logf(
-    level=None,  # Opt[U[int, str]] = None,
-    log_args=True,  # bool = True,
-    log_return=True,  # bool = True,
-    max_str_len=TRUNC_STR_LEN,  # U[int,None] = TRUNC_STR_LEN,
+    level: Opt[U[int, str]] = None,
+    log_args: bool = True,
+    log_return: bool = True,
+    max_str_len: U[int, None] = TRUNC_STR_LEN,
     log_exec_time=True,  # bool = True,
     single_msg=False,  # bool = False,
     use_print=False,  # bool = False,
