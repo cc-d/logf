@@ -11,38 +11,36 @@ from datetime import datetime
 from functools import wraps
 from typing import (
     Any,
-    Callable,
-    Optional,
+    Callable as Call,
+    Optional as Opt,
     TypeVar,
-    Union,
+    Union as U,
     Dict,
     Iterable,
-    Coroutine,
+    Coroutine as Co,
 )
+from logging import getLogger
 
-from .config import TRUNC_STR_LEN
-from .utils import (
-    func_args_str,
-    func_return_str,
-    get_evar,
-    loglevel_int,
-    print_or_log,
-    trunc_str,
-)
+
+from .utils import loglevel_int, handle_log, trunc_str
+from .config import Env, EVARS, MSG_FORMATS
+
+from .defaults import TRUNC_STR_LEN
 
 
 def logf(
-    level: Optional[Union[int, str]] = None,
+    level: Opt[U[int, str]] = None,
     log_args: bool = True,
     log_return: bool = True,
-    max_str_len: Optional[int] = TRUNC_STR_LEN,
+    max_str_len: int = TRUNC_STR_LEN,
     log_exec_time: bool = True,
     single_msg: bool = False,
     use_print: bool = False,
-    use_logger: Optional[Union[logging.Logger, str]] = None,
+    use_logger: Opt[U[logging.Logger, str]] = None,
     log_stack_info: bool = False,
-    **kwargs
-) -> Union[Callable[..., Any], Coroutine[Any, Any, Any]]:
+    log_exception: bool = True,
+    **kwargs,
+) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
@@ -67,22 +65,39 @@ def logf(
         log_stack_info (bool): stack_info kwarg for logging.log
             Can be overridden by the evar LOGF_STACK_INFO.
             Defaults to False
+        log_exception (bool): Should exceptions be logged? Defaults to True.
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
     """
-    # override defaults with environment variables if present
-    max_str_len = get_evar('LOGF_MAX_STR_LEN', max_str_len)
-    single_msg = get_evar('LOGF_SINGLE_MSG', single_msg)
-    use_print = get_evar('LOGF_USE_PRINT', use_print)
-    log_stack_info = get_evar('LOGF_STACK_INFO', log_stack_info)
-
-
+    _env = Env()
     # for backwards compatability, override log_exec_time using
     # the measure_time kwarg if present
     if 'measure_time' in kwargs:
         log_exec_time = kwargs['measure_time']
 
-    def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
+    for ev in EVARS:
+        _ev = getattr(_env, ev)
+        if _ev is not None:
+            if ev == 'LOGF_MAX_STR_LEN':
+                max_str_len = None if _ev.lower() == 'none' else int(_ev)
+            elif ev == 'LOGF_SINGLE_MSG':
+                single_msg = _ev.lower() == 'true'
+            elif ev == 'LOGF_USE_PRINT':
+                use_print = _ev.lower() == 'true'
+            elif ev == 'LOGF_LOG_ARGS':
+                log_args = _ev.lower() == 'true'
+            elif ev == 'LOGF_LOG_RETURN':
+                log_return = _ev.lower() == 'true'
+            elif ev == 'LOGF_LOG_EXEC_TIME':
+                log_exec_time = _ev.lower() == 'true'
+            elif ev == 'LOGF_USE_LOGGER':
+                use_logger = getLogger(_ev) if _ev else None
+            elif ev == 'LOGF_STACK_INFO':
+                log_stack_info = _ev.lower() == 'true'
+            elif ev == 'LOGF_LOG_EXCEPTION':
+                log_exception = _ev.lower() == 'true'
+
+    def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         # handle async funcs
         if _insp.iscoroutinefunction(func):
 
@@ -91,37 +106,75 @@ def logf(
                 start_time = (
                     asyncio.get_event_loop().time() if log_exec_time else None
                 )
-                if not single_msg:
-                    logmsg_enter = func_args_str(
-                        func, args, kwargs, log_args, max_str_len
+                if log_args:
+                    func_args = str(args)
+                    func_kwargs = str(kwargs)
+                    args_str = MSG_FORMATS.argstr.format(
+                        func_args=func_args, func_kwargs=func_kwargs
                     )
-                    print_or_log(
-                        logmsg_enter,
+                else:
+                    args_str = ''
+
+                if not single_msg:
+
+                    logmsg = MSG_FORMATS.enter.format(
+                        func_name=func.__name__, args_str=args_str
+                    )
+
+                    if use_print:
+                        print(logmsg)
+                    else:
+                        handle_log(
+                            logmsg,
+                            level,
+                            use_logger,
+                            log_stack_info=log_stack_info,
+                        )
+
+                result = await func(*args, **kwargs)
+
+                if single_msg:
+                    logmsg = MSG_FORMATS.single.format(
+                        func_name=func.__name__,
+                        exec_time=(
+                            '%.5f'
+                            % (asyncio.get_event_loop().time() - start_time)
+                            if log_exec_time
+                            else ''
+                        ),
+                        args_str=args_str,
+                        result=(
+                            trunc_str(result, max_str_len)
+                            if log_return
+                            else ''
+                        ),
+                    )
+                else:
+                    logmsg = MSG_FORMATS.exit.format(
+                        func_name=func.__name__,
+                        exec_time=(
+                            '%.5f'
+                            % (asyncio.get_event_loop().time() - start_time)
+                            if log_exec_time
+                            else ''
+                        ),
+                        result=(
+                            trunc_str(result, max_str_len)
+                            if log_return
+                            else ''
+                        ),
+                    )
+
+                if use_print:
+                    print(logmsg)
+                else:
+                    handle_log(
+                        logmsg,
                         level,
-                        use_print,
                         use_logger,
                         log_stack_info=log_stack_info,
                     )
 
-                result = await func(*args, **kwargs)
-                logmsg_exit = func_return_str(
-                    func,
-                    args,
-                    kwargs,
-                    result,
-                    start_time,
-                    log_args,
-                    log_return,
-                    single_msg,
-                    max_str_len,
-                )
-                print_or_log(
-                    logmsg_exit,
-                    level,
-                    use_print,
-                    use_logger,
-                    log_stack_info=log_stack_info,
-                )
                 return result
 
         # handle sync funcs
@@ -132,43 +185,67 @@ def logf(
                 # Start the timer if required and execute the function.
                 start_time = time.time() if log_exec_time else None
 
-                # if single_msg=True log both enter/exit in one message later
+                if log_args:
+                    func_args = str(args)
+                    func_kwargs = str(kwargs)
+                    args_str = MSG_FORMATS.argstr.format(
+                        func_args=func_args, func_kwargs=func_kwargs
+                    )
+                else:
+                    args_str = ''
+
+                # Log the enter message if required
                 if not single_msg:
-                    # Log function arguments if required argstr used later if single msg
-                    # otherwise, only the function name is logged on entry
-                    logmsg_enter = func_args_str(
-                        func, args, kwargs, log_args, max_str_len
+                    logmsg = MSG_FORMATS.enter.format(
+                        func_name=func.__name__, args_str=args_str
+                    )
+                    if use_print:
+                        print(logmsg)
+                    else:
+                        handle_log(
+                            logmsg,
+                            level,
+                            use_logger,
+                            log_stack_info=log_stack_info,
+                        )
+
+                result = func(*args, **kwargs)
+
+                if single_msg:
+                    logmsg = MSG_FORMATS.single.format(
+                        func_name=func.__name__,
+                        exec_time=('%.5f' % (time.time() - start_time)),
+                        args_str=args_str,
+                        result=(
+                            trunc_str(result, max_str_len)
+                            if log_return
+                            else ''
+                        ),
+                    )
+                else:
+                    logmsg = MSG_FORMATS.exit.format(
+                        func_name=func.__name__,
+                        exec_time=(
+                            '%.5f' % (time.time() - start_time)
+                            if log_exec_time
+                            else ''
+                        ),
+                        result=(
+                            trunc_str(result, max_str_len)
+                            if log_return
+                            else ''
+                        ),
                     )
 
-                    print_or_log(
-                        logmsg_enter,
+                if use_print:
+                    print(logmsg)
+                else:
+                    handle_log(
+                        logmsg,
                         level,
-                        use_print,
                         use_logger,
                         log_stack_info=log_stack_info,
                     )
-
-                result = func(*args, **kwargs)
-                logmsg_exit = func_return_str(
-                    func,
-                    args,
-                    kwargs,
-                    result,
-                    start_time,
-                    log_args,
-                    log_return,
-                    single_msg,
-                    max_str_len,
-                )
-
-                # Log the return value and execution time if required
-                print_or_log(
-                    logmsg_exit,
-                    level,
-                    use_print,
-                    use_logger,
-                    log_stack_info=log_stack_info,
-                )
 
                 return result
 

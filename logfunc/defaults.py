@@ -1,0 +1,1 @@
+TRUNC_STR_LEN = 1600
