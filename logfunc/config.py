@@ -17,17 +17,6 @@ EVARS = (
 
 
 class Env:
-    LOGF_LEVEL: str  # : Union[str, None]
-    LOGF_USE_PRINT: str  # : Union[str, None]
-    LOGF_SINGLE_MSG: str  # : Union[str, None]
-    LOGF_MAX_STR_LEN: str  # : Union[str, None]
-    LOGF_LOG_ARGS: str  # : Union[str, None]
-    LOGF_LOG_RETUnionRN: str  # : Union[str, None]
-    LOGF_LOG_EXEC_TIME: str  # : Union[str, None]
-    LOGF_USE_LOGGER: str  # : Union[str, None]
-    LOGF_STACK_INFO: str  # : Union[str, None]
-    LOGF_LOG_EXCEPTION: str  # : Union[str, None]
-
     def __init__(self):
         for evar in EVARS:
             setattr(self, evar, os.environ.get(evar))
