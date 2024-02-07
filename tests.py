@@ -82,7 +82,9 @@ class TestLogfEnvVars(unittest.TestCase):
         with patch('builtins.print') as mock_print:
             f()
 
-        mock_print.assert_called()
+        # Replace mock_print.assert_called()
+        self.assertTrue(mock_print.call_count > 0)
+
         msg_enter = mock_print.call_args_list[0][0][0]
         msg_exit = mock_print.call_args_list[1][0][0]
         self.assertEqual(
@@ -175,7 +177,7 @@ class TestLogfEnvVars(unittest.TestCase):
                     mock_getLogger.return_value = 'logf'
                     f()
 
-        mock_handle_log.assert_called()
+        self.assertTrue(mock_handle_log.call_count > 0)
         self.assertIn(getLogger('logf'), mock_handle_log.call_args_list[0][0])
 
     def test_evar_stack_info(self):
@@ -251,7 +253,8 @@ class TestLogfAsync(unittest.TestCase):
         with patch('logfunc.main.handle_log') as mock_handle_log:
             await async_func(1, 2)
 
-        mock_handle_log.assert_called_once()
+        # Replace mock_handle_log.assert_called_once()
+        self.assertEqual(mock_handle_log.call_count, 1)
 
     @async_test
     async def test_async_no_args(self):
