@@ -1,5 +1,5 @@
 import os
-from typing import Optional as Opt, Union as U
+from typing import Optional as Opt, Union
 
 
 EVARS = (
@@ -17,16 +17,16 @@ EVARS = (
 
 
 class Env:
-    LOGF_LEVEL: U[str, None]
-    LOGF_USE_PRINT: U[str, None]
-    LOGF_SINGLE_MSG: U[str, None]
-    LOGF_MAX_STR_LEN: U[str, None]
-    LOGF_LOG_ARGS: U[str, None]
-    LOGF_LOG_RETURN: U[str, None]
-    LOGF_LOG_EXEC_TIME: U[str, None]
-    LOGF_USE_LOGGER: U[str, None]
-    LOGF_STACK_INFO: U[str, None]
-    LOGF_LOG_EXCEPTION: U[str, None]
+    LOGF_LEVEL: Union[str, None]
+    LOGF_UnionSE_PRINT: Union[str, None]
+    LOGF_SINGLE_MSG: Union[str, None]
+    LOGF_MAX_STR_LEN: Union[str, None]
+    LOGF_LOG_ARGS: Union[str, None]
+    LOGF_LOG_RETUnionRN: Union[str, None]
+    LOGF_LOG_EXEC_TIME: Union[str, None]
+    LOGF_UnionSE_LOGGER: Union[str, None]
+    LOGF_STACK_INFO: Union[str, None]
+    LOGF_LOG_EXCEPTION: Union[str, None]
 
     def __init__(self):
         for evar in EVARS:
