@@ -17,16 +17,16 @@ EVARS = (
 
 
 class Env:
-    LOGF_LEVEL: Union[str, None]
-    LOGF_UnionSE_PRINT: Union[str, None]
-    LOGF_SINGLE_MSG: Union[str, None]
-    LOGF_MAX_STR_LEN: Union[str, None]
-    LOGF_LOG_ARGS: Union[str, None]
-    LOGF_LOG_RETUnionRN: Union[str, None]
-    LOGF_LOG_EXEC_TIME: Union[str, None]
-    LOGF_UnionSE_LOGGER: Union[str, None]
-    LOGF_STACK_INFO: Union[str, None]
-    LOGF_LOG_EXCEPTION: Union[str, None]
+    LOGF_LEVEL: str  # : Union[str, None]
+    LOGF_USE_PRINT: str  # : Union[str, None]
+    LOGF_SINGLE_MSG: str  # : Union[str, None]
+    LOGF_MAX_STR_LEN: str  # : Union[str, None]
+    LOGF_LOG_ARGS: str  # : Union[str, None]
+    LOGF_LOG_RETUnionRN: str  # : Union[str, None]
+    LOGF_LOG_EXEC_TIME: str  # : Union[str, None]
+    LOGF_USE_LOGGER: str  # : Union[str, None]
+    LOGF_STACK_INFO: str  # : Union[str, None]
+    LOGF_LOG_EXCEPTION: str  # : Union[str, None]
 
     def __init__(self):
         for evar in EVARS:
