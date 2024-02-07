@@ -224,7 +224,6 @@ def print_or_log(
     level: Opt[Union[int, str]] = logging.DEBUG,
     use_print: bool = False,
     use_logger: Opt[logging.Logger] = None,
-    log_exc_info: bool = False,
     log_stack_info: bool = False,
 ) -> Union[Callable, None]:
     """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
@@ -237,8 +236,6 @@ def print_or_log(
             Default False
         use_logger (logging.Logger): The logger to use for logging.
             Defaults to None. If None, logging.log is used.
-        log_exc_info (bool): exc_info kwarg for logging.log
-            Defaults to False.
         log_stack_info (bool): stack_info kwarg for logging.log
             Defaults to False
     Returns:
@@ -256,7 +253,7 @@ def print_or_log(
 
     use_log_func = decide_logfunc(use_logger)
     use_log_func(
-        level_int, logmsg, exc_info=log_exc_info, stack_info=log_stack_info
+        level_int, logmsg, stack_info=log_stack_info
     )
     return use_log_func
 

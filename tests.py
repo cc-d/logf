@@ -9,7 +9,7 @@ from io import StringIO
 from json import loads
 from os.path import abspath, dirname, join
 from typing import Any, Dict, List, Optional, Tuple, Union
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 sys.path.append(abspath(dirname(__file__)))
 
@@ -425,6 +425,18 @@ class TestLogf(unittest.TestCase):
             self.assertTrue(len(out) > 0)
             self.assertTrue(len(aout) == 0)
 
+    def test_stack_info_evar(self):
+        os.environ['LOGF_STACK_INFO'] = 'True'
+
+        @logf(log_stack_info=True)
+        def f():
+            return 1
+
+        with self.assertLogs(level='DEBUG') as log:
+            f()
+        self.assertIn('Stack (most recent call last):', log.output[0])
+
+
 
 # Asynchronous decorator
 def async_decorator(async_func):
@@ -434,9 +446,17 @@ def async_decorator(async_func):
 
     return async_wrapper
 
+def run_async(coro):
+    loop = asyncio.get_event_loop()
+    if not loop.is_running():  # Prevents error in nested async calls
+        return loop.run_until_complete(coro)
+    else:
+        return asyncio.run_coroutine_threadsafe(coro, loop).result()
+
 
 class TestAsyncLogf(unittest.TestCase):
     """verifies decorator works with async fucns"""
+
 
     @classmethod
     def setUp(cls):
@@ -454,7 +474,7 @@ class TestAsyncLogf(unittest.TestCase):
             return 'ret2'
 
         with self.assertLogs(level='DEBUG') as log:
-            asyncio.run(asyncfunc())
+            _ = run_async(asyncfunc())
             out = [l for l in log.output if 'asyncfunc' in l]
             self.assertTrue(len(out) >= 2)
             self.assertTrue(out[1].split(' | ')[1] == 'ret2')
@@ -468,7 +488,7 @@ class TestAsyncLogf(unittest.TestCase):
 
         with self.assertLogs(level='DEBUG') as log:
             with self.assertRaises(ValueError):
-                asyncio.run(async_raise_exception())
+                _ = run_async(async_raise_exception())
             self.assertTrue(len(log.output) <= 2)
             self.assertTrue(
                 'async async_raise_exception()' in ''.join(log.output)
@@ -487,7 +507,7 @@ class TestAsyncLogf(unittest.TestCase):
         obj = AsyncTestClass()
 
         with self.assertLogs(level='DEBUG') as log:
-            result = asyncio.run(obj.async_class_method(3))
+            result = run_async(obj.async_class_method(3))
             self.assertEqual(result, 9)
             self.assertTrue(len(log.output) >= 2)
 
@@ -501,7 +521,7 @@ class TestAsyncLogf(unittest.TestCase):
             return str(x)
 
         with self.assertLogs(level='DEBUG') as log:
-            result = asyncio.run(my_async_func(1))
+            result = run_async(my_async_func(1))
             self.assertTrue(result == '1')
 
     def test_async_in_funcname(self):
@@ -512,7 +532,7 @@ class TestAsyncLogf(unittest.TestCase):
             return str(x)
 
         with self.assertLogs(level='DEBUG') as log:
-            result = asyncio.run(afunc(1))
+            result = run_async(afunc(1))
             for l in log.output:
                 if l.find('afunc()') != -1:
                     self.assertTrue('async afunc()' in l)
@@ -548,7 +568,7 @@ class TestRegressions(unittest.TestCase):
             return 'ret'
 
         with self.assertLogs(level='DEBUG') as log:
-            asyncio.run(asyncfunc())
+            run_async(asyncfunc())
             self.assertTrue(len(log.output) >= 2)
             timere = r'\d+?\.?\d+s'
             for logmsg in log.output:
@@ -569,7 +589,7 @@ class TestRegressions(unittest.TestCase):
             return 'ret'
 
         with self.assertLogs(level='DEBUG') as log:
-            retstr = asyncio.run(funcname())
+            retstr = run_async(funcname())
             out = [l for l in log.output if '%s()' % 'funcname' in l]
             aout = [l for l in log.output if 'async %s()' % 'funcname' in l]
 

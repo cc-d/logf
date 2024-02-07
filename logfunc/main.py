@@ -40,7 +40,6 @@ def logf(
     single_msg: bool = False,
     use_print: bool = False,
     use_logger: Optional[Union[logging.Logger, str]] = None,
-    log_exc_info: bool = False,
     log_stack_info: bool = False,
     **kwargs
 ) -> Union[Callable[..., Any], Coroutine[Any, Any, Any]]:
@@ -48,7 +47,6 @@ def logf(
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
     execution time.
-
     Args:
         level (Optional[Union[int, str]]): The logging level to use.
             Defaults to logging.DEBUG.
@@ -66,17 +64,18 @@ def logf(
             Default False
         use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
             to use for logging. Defaults to None. If None, logging.log is used.
-        log_exc_info (bool): exc_info kwarg for logging.log
-            Defaults to False.
         log_stack_info (bool): stack_info kwarg for logging.log
+            Can be overridden by the evar LOGF_STACK_INFO.
             Defaults to False
-
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
     """
+    # override defaults with environment variables if present
     max_str_len = get_evar('LOGF_MAX_STR_LEN', max_str_len)
     single_msg = get_evar('LOGF_SINGLE_MSG', single_msg)
     use_print = get_evar('LOGF_USE_PRINT', use_print)
+    log_stack_info = get_evar('LOGF_STACK_INFO', log_stack_info)
+
 
     # for backwards compatability, override log_exec_time using
     # the measure_time kwarg if present
@@ -101,7 +100,6 @@ def logf(
                         level,
                         use_print,
                         use_logger,
-                        log_exc_info=log_exc_info,
                         log_stack_info=log_stack_info,
                     )
 
@@ -122,7 +120,6 @@ def logf(
                     level,
                     use_print,
                     use_logger,
-                    log_exc_info=log_exc_info,
                     log_stack_info=log_stack_info,
                 )
                 return result
@@ -148,7 +145,6 @@ def logf(
                         level,
                         use_print,
                         use_logger,
-                        log_exc_info=log_exc_info,
                         log_stack_info=log_stack_info,
                     )
 
@@ -171,7 +167,6 @@ def logf(
                     level,
                     use_print,
                     use_logger,
-                    log_exc_info=log_exc_info,
                     log_stack_info=log_stack_info,
                 )
 

@@ -1,9 +1,5 @@
 # logfunc - @logf()
 
-### CURRENT VERSION: v1.9.4
-
-### Last Change: fixed bug on python < 3.6 with typehint syntax
-
 `@logf()` is a Python decorator designed for uncomplicated and immediate addition of logging to functions. Its main goal is to provide developers with a tool that can be added quickly to any function and left in place without further adjustments.
 
 I originally made `@logf()` for my own use, but I hope it can be useful to others as well.
@@ -58,7 +54,6 @@ This setup ensures automatic logging of function name, parameters, return values
 - `log_exec_time`: Option to log the execution time.
 - `single_msg`: Consolidate all log data into a single message.
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
-- `log_exc_info`: Pass `exc_info=$x` to `.log()` but not print
 - `log_stack_info`: Pass `stack_info=$x` to `.log()` but not print
 
 **print_all** used to be an env var, now just unset LOGF_LEVEL and set USE_PRINT=True for the same effect.
