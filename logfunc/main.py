@@ -29,18 +29,18 @@ from .defaults import TRUNC_STR_LEN
 
 
 def logf(
-    level: Any,  # Opt[U[int, str]] = None,
-    log_args: bool = True,
-    log_return: bool = True,
-    max_str_len: int = TRUNC_STR_LEN,
-    log_exec_time: bool = True,
-    single_msg: bool = False,
-    use_print: bool = False,
-    use_logger: Any = None,  # Opt[U[logging.Logger, str]] = None,
-    log_stack_info: bool = False,
-    log_exception: bool = True,
+    level=None,  # Opt[U[int, str]] = None,
+    log_args=True,  # bool = True,
+    log_return=True,  # bool = True,
+    max_str_len=TRUNC_STR_LEN,  # U[int,None] = TRUNC_STR_LEN,
+    log_exec_time=True,  # bool = True,
+    single_msg=False,  # bool = False,
+    use_print=False,  # bool = False,
+    use_logger=None,  # Opt[U[logging.Logger, str]] = None,
+    log_stack_info=False,  # bool = False,
+    log_exception=True,  # bool = True,
     **kwargs,
-) -> Any:  #  U[Call[..., Any], Co[Any, Any, Any]]:
+):  #  U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
