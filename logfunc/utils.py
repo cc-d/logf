@@ -66,7 +66,7 @@ def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
 def handle_log(
     logmsg: str,
     level: Opt[Union[int, str]] = None,
-    use_logger: Opt[logging.Logger] = None,
+    use_logger: Opt[Any] = None,  # Union[logging.Logger, str, None] = None,
     log_stack_info: bool = False,
 ) -> Union[Callable, None]:
     """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
