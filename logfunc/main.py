@@ -40,7 +40,7 @@ def logf(
     log_stack_info=False,  # bool = False,
     log_exception=True,  # bool = True,
     **kwargs
-):  #  U[Call[..., Any], Co[Any, Any, Any]]:
+) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
