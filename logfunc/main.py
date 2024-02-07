@@ -33,12 +33,12 @@ def logf(
     log_args: bool = True,
     log_return: bool = True,
     max_str_len: U[int, None] = TRUNC_STR_LEN,
-    log_exec_time=True,  # bool = True,
-    single_msg=False,  # bool = False,
-    use_print=False,  # bool = False,
-    use_logger=None,  # Opt[U[logging.Logger, str]] = None,
-    log_stack_info=False,  # bool = False,
-    log_exception=True,  # bool = True,
+    log_exec_time: bool = True,
+    single_msg: bool = False,
+    use_print: bool = False,
+    use_logger: Opt[U[logging.Logger, str]] = None,
+    log_stack_info: bool = False,
+    log_exception: bool = True,
     **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
