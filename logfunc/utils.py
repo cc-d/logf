@@ -22,7 +22,7 @@ from .config import Env, EVARS
 from .defaults import TRUNC_STR_LEN
 
 
-def trunc_str(tstr: Any, max_length: Any = TRUNC_STR_LEN) -> str:
+def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
     """Truncates a string if its length exceeds the specified maximum length.
     If the string is truncated, it appends '...' to indicate the truncation. If
     no max_length is specified, the string is returned as-is. If a non-str is
@@ -65,10 +65,10 @@ def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
 
 def handle_log(
     logmsg: str,
-    level: Any = None,  # Union[int, str, None] = None,
-    use_logger: Any = None,  # Union[logging.Logger, str, None] = None,
+    level: Opt[Union[int, str]] = None,
+    use_logger: Opt[logging.Logger] = None,
     log_stack_info: bool = False,
-) -> Any:  # Callable[[int, str, bool], None]:
+) -> Union[Callable, None]:
     """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
     LOGF_LEVEL, and LOGF_PRINT_ALL environment variables.
     Args:
