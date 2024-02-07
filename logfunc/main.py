@@ -39,7 +39,7 @@ def logf(
     use_logger=None,  # Opt[U[logging.Logger, str]] = None,
     log_stack_info=False,  # bool = False,
     log_exception=True,  # bool = True,
-    **kwargs,
+    **kwargs
 ):  #  U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
