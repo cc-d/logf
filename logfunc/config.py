@@ -29,6 +29,8 @@ EXIT_MSG = '{func_name}() {exec_time}s | {result}'
 SINGLE_MSG = '{func_name}() {exec_time}s | {args_str} | {result}'
 ENTER_MSG_NO_ARGS = '{func_name}()'
 
+ERROR_MSG = 'ERROR {func_name}(): {exc_type} | {exc_val}'
+
 
 class MSG_FORMATS:
     argstr = ARGSSTR
@@ -37,3 +39,4 @@ class MSG_FORMATS:
     exit = EXIT_MSG
     exit_no_return = EXIT_MSG_NO_RETURN
     single = SINGLE_MSG
+    error = ERROR_MSG

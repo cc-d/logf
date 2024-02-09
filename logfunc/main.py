@@ -7,6 +7,7 @@ import re
 import string
 import sys
 import time
+from traceback import format_exception
 from datetime import datetime
 from functools import wraps
 from typing import (
@@ -116,7 +117,6 @@ def logf(
                     args_str = ''
 
                 if not single_msg:
-
                     logmsg = MSG_FORMATS.enter.format(
                         func_name=func.__name__, args_str=args_str
                     )
@@ -131,7 +131,24 @@ def logf(
                             log_stack_info=log_stack_info,
                         )
 
-                result = await func(*args, **kwargs)
+                if log_exception:
+                    try:
+                        result = await func(*args, **kwargs)
+                    except Exception as e:
+                        if use_print:
+                            format_exception(e, value=e, tb=e.__traceback__)
+                        else:
+                            logmsg = MSG_FORMATS.error.format(
+                                func_name=func.__name__,
+                                exc_type=type(e).__name__,
+                                exc_val=e,
+                            )
+                            handle_log(
+                                logmsg, level, use_logger, log_exception
+                            )
+                        raise e
+                else:
+                    result = await func(*args, **kwargs)
 
                 if single_msg:
                     logmsg = MSG_FORMATS.single.format(
@@ -209,7 +226,29 @@ def logf(
                             log_stack_info=log_stack_info,
                         )
 
-                result = func(*args, **kwargs)
+                if log_exception:
+                    try:
+                        result = func(*args, **kwargs)
+                    except Exception as e:
+                        if use_print:
+
+                            format_exception(e, value=e, tb=e.__traceback__)
+
+                        else:
+                            logmsg = MSG_FORMATS.error.format(
+                                func_name=func.__name__,
+                                exc_type=type(e).__name__,
+                                exc_val=e,
+                            )
+                            handle_log(
+                                logmsg,
+                                level,
+                                use_logger,
+                                log_exception=log_exception,
+                            )
+                        raise e
+                else:
+                    result = func(*args, **kwargs)
 
                 if single_msg:
                     logmsg = MSG_FORMATS.single.format(
