@@ -265,3 +265,63 @@ class TestLogfAsync(unittest.TestCase):
         await async_func('logged')
         output = sys.stdout.getvalue()
         self.assertNotIn('logged', output)
+
+
+class TestLogfErrorHandling(unittest.TestCase):
+    def setUp(self):
+        clear_env_vars()
+
+    def test_sync_log_exception_true_use_print_true(self):
+        @logf(log_exception=True, use_print=True)
+        def sync_raise_error():
+            raise ValueError("Test Error")
+
+        with patch('logfunc.main.format_exception') as mock_format_exception:
+            with self.assertRaises(ValueError):
+                sync_raise_error()
+
+        self.assertTrue(mock_format_exception.call_count > 0)
+
+    def test_sync_log_exception_true_use_print_false(self):
+        @logf(log_exception=True, use_print=False)
+        def sync_raise_error():
+            raise ValueError("Test Error")
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            with self.assertRaises(ValueError):
+                sync_raise_error()
+
+        self.assertTrue(mock_handle_log.call_count > 0)
+        self.assertIn('ERROR', mock_handle_log.call_args_list[1][0])
+
+    def test_sync_log_exception_false_use_print_true(self):
+        @logf(log_exception=False, use_print=True)
+        def sync_raise_error():
+            raise ValueError("Test Error")
+
+        with self.assertRaises(ValueError):
+            sync_raise_error()
+
+    @async_test
+    async def test_async_log_exception_true_use_print_true(self):
+        @logf(log_exception=True, use_print=True)
+        async def async_raise_error():
+            raise ValueError("Async Test Error")
+
+        with patch('logfunc.main.format_exception') as mock_format_exception:
+            with self.assertRaises(ValueError):
+                await async_raise_error()
+
+        self.assertTrue(mock_format_exception.call_count > 0)
+
+    @async_test
+    async def test_async_log_exception_true_use_print_false(self):
+        @logf(log_exception=True, use_print=False)
+        async def async_raise_error():
+            raise ValueError("Async Test Error")
+
+        with self.assertRaises(ValueError), self.assertLogs(
+            level='ERROR'
+        ) as log:
+            await async_raise_error()
+        self.assertIn("Async Test Error", log.output[0])

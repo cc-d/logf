@@ -13,6 +13,7 @@ I originally made `@logf()` for my own use, but I hope it can be useful to other
 - **Encourages Logic Compartmentalization**.
 - **Customizable**: Numerous settings available for tailoring logging behavior to specific needs.
 - **Environment Variables**: Overriding default settings made easy with environment variables.
+- **Log Exceptions**: Option to log exceptions before they are raised.
 
 ## Usage
 
@@ -55,19 +56,27 @@ This setup ensures automatic logging of function name, parameters, return values
 - `single_msg`: Consolidate all log data into a single message.
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
 - `log_stack_info`: Pass `stack_info=$x` to `.log()` but not print
+- `use_logger`: Pass a logger name or logger object to use instead of logging.log()
+- `log_exception`: Log exceptions if they occur before they are raised.
 
 **print_all** used to be an env var, now just unset LOGF_LEVEL and set USE_PRINT=True for the same effect.
 
-### Environment Variables
+### Environment Variable Overrides
 
 Modify the behavior of `@logf()` using environment variables:
 
-| Env Var          | Example Values       |
-| ---------------- | -------------------- |
-| LOGF_LEVEL       | DEBUG, INFO, WARNING |
-| LOGF_MAX_STR_LEN | 10, 50, 10000000     |
-| LOGF_SINGLE_MSG  | True, False          |
-| LOGF_USE_PRINT   | True, False          |
+| Env Var            | Example Values       |
+| ------------------ | -------------------- |
+| LOGF_LEVEL         | DEBUG, INFO, WARNING |
+| LOGF_MAX_STR_LEN   | 10, 50, 10000000     |
+| LOGF_SINGLE_MSG    | True, False          |
+| LOGF_USE_PRINT     | True, False          |
+| LOGF_STACK_INFO    | True, False          |
+| LOGF_LOG_EXEC_TIME | True, False          |
+| LOGF_LOG_ARGS      | True, False          |
+| LOGF_LOG_RETURN    | True, False          |
+| LOGF_LOG_EXCEPTION | True, False          |
+| LOGF_USE_LOGGER    | 'logger_name'        |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
@@ -132,7 +141,7 @@ Activate/create your venv with `python3 -m venv venv` and `source venv/bin/activ
 
 Run `pip install -r requirements_dev.txt` to install the testing dependencies.
 
-Run `./run_tests-multi.sh` to run the tests.
+Run `pytest tests.py` to run the tests.
 
 Output should look like this:
 
@@ -141,14 +150,13 @@ Output should look like this:
 Name                  Stmts   Miss  Cover   Missing
 ---------------------------------------------------
 logfunc/__init__.py       1      0   100%
-logfunc/config.py         2      0   100%
-logfunc/main.py          45      0   100%
-logfunc/utils.py        100      0   100%
+logfunc/config.py        22      0   100%
+logfunc/defaults.py       1      0   100%
+logfunc/main.py         106      1    99%   151
+logfunc/utils.py         30      2    93%   60, 88
+tests.py                225      0   100%
 ---------------------------------------------------
-TOTAL                   148      0   100%
-
-
-=====================  37 passed in 1.51s =====================
+TOTAL                   385      3    99%
 ```
 
 You can also just run the `tests.py` file directly.

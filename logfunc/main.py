@@ -144,7 +144,7 @@ def logf(
                                 exc_val=e,
                             )
                             handle_log(
-                                logmsg, level, use_logger, log_exception
+                                logmsg, 'ERROR', use_logger, log_exception
                             )
                         raise e
                 else:
@@ -242,7 +242,7 @@ def logf(
                             )
                             handle_log(
                                 logmsg,
-                                level,
+                                'ERROR',
                                 use_logger,
                                 log_exception=log_exception,
                             )

@@ -83,18 +83,6 @@ def handle_log(
     Returns:
         Callable: The function used to print/log
     """
-    print(
-        'logmsg:',
-        logmsg,
-        'level:',
-        level,
-        'use_logger:',
-        use_logger,
-        'log_stack_info:',
-        log_stack_info,
-        'log_exception:',
-        log_exception,
-    )
     level_int = loglevel_int(level) if level is not None else logging.DEBUG
     if isinstance(use_logger, str):
         use_logger = logging.getLogger(use_logger)
