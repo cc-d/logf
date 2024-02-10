@@ -1,6 +1,5 @@
 import asyncio
 import inspect as _insp
-import logging
 import os
 import random
 import re
@@ -20,7 +19,7 @@ from typing import (
     Iterable,
     Coroutine as Co,
 )
-from logging import getLogger
+from logging import getLogger, Logger
 
 
 from .utils import loglevel_int, handle_log, trunc_str
@@ -37,7 +36,7 @@ def logf(
     log_exec_time: bool = True,
     single_msg: bool = False,
     use_print: bool = False,
-    use_logger: Opt[U[logging.Logger, str]] = None,
+    use_logger: Opt[U[Logger, str]] = None,
     log_stack_info: bool = False,
     log_exception: bool = True,
     **kwargs
@@ -48,7 +47,7 @@ def logf(
     execution time.
     Args:
         level (Optional[Union[int, str]]): The logging level to use.
-            Defaults to logging.DEBUG.
+            Defaults to DEBUG.
         log_args (bool): Should the function arguments be logged?
             Defaults to True.
         log_return (bool): Should function return be logged?
@@ -61,9 +60,9 @@ def logf(
             into a single message? Default False
         use_print (bool): Should the log messages be printed instead of logged?
             Default False
-        use_logger (Optional[Union[logging.Logger, str]]): logger/logger name
-            to use for logging. Defaults to None. If None, logging.log is used.
-        log_stack_info (bool): stack_info kwarg for logging.log
+        use_logger (Optional[Union[Logger, str]]): logger/logger name
+            to use for  Defaults to None. If None, log is used.
+        log_stack_info (bool): stack_info kwarg for log
             Can be overridden by the evar LOGF_STACK_INFO.
             Defaults to False
         log_exception (bool): Should exceptions be logged? Defaults to True.
@@ -97,6 +96,10 @@ def logf(
                 log_stack_info = _ev.lower() == 'true'
             elif ev == 'LOGF_LOG_EXCEPTION':
                 log_exception = _ev.lower() == 'true'
+
+    # if param use_logger is a string, convert it to a logger
+    if use_logger is not None and not isinstance(use_logger, Logger):
+        use_logger = getLogger(use_logger)
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         # handle async funcs

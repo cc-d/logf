@@ -152,11 +152,12 @@ Name                  Stmts   Miss  Cover   Missing
 logfunc/__init__.py       1      0   100%
 logfunc/config.py        22      0   100%
 logfunc/defaults.py       1      0   100%
-logfunc/main.py         106      1    99%   151
-logfunc/utils.py         30      2    93%   60, 88
-tests.py                225      0   100%
+logfunc/main.py         107      0   100%
+logfunc/utils.py         28      0   100%
+tests.py                282      0   100%
 ---------------------------------------------------
-TOTAL                   385      3    99%
+TOTAL                   441      0   100%
+
 ```
 
 You can also just run the `tests.py` file directly.

@@ -84,8 +84,6 @@ def handle_log(
         Callable: The function used to print/log
     """
     level_int = loglevel_int(level) if level is not None else logging.DEBUG
-    if isinstance(use_logger, str):
-        use_logger = logging.getLogger(use_logger)
 
     logfunc = logging.log if use_logger is None else use_logger.log
     logfunc(

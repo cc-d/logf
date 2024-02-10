@@ -42,6 +42,38 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(loglevel_int('NOTSET'), logging.NOTSET)
         self.assertEqual(loglevel_int(10), 10)
         self.assertEqual(loglevel_int(), logging.DEBUG)
+        self.assertEqual(loglevel_int(None), logging.DEBUG)
+
+
+def evar_and_param(
+    evar_name,
+    evar_value,
+    logf_param_name,
+    logf_param_value,
+    ret=1,
+    *args,
+    **kwargs
+):
+
+    def wrapper_env():
+        os.environ[evar_name] = evar_value
+
+        @logf()
+        def f(*args, **kwargs):
+            return ret
+
+        if evar_name in os.environ:
+            del os.environ[evar_name]
+        return f
+
+    def wrapper_param():
+        @logf(**{logf_param_name: logf_param_value})
+        def f(*args, **kwargs):
+            return ret
+
+        return f
+
+    return wrapper_env, wrapper_param
 
 
 class TestLogfEnvVars(unittest.TestCase):
@@ -73,109 +105,123 @@ class TestLogfEnvVars(unittest.TestCase):
         self.assertTrue(len(msgs[1]) < TRUNC_STR_LEN * 2)
 
     def test_evar_use_print(self):
-        os.environ['LOGF_USE_PRINT'] = 'True'
+        ef, pf = evar_and_param('LOGF_USE_PRINT', 'True', 'use_print', True)
 
-        @logf()
-        def f():
-            return 1
+        for f in [ef(), pf()]:
+            with patch('builtins.print') as mock_print:
+                f()
 
-        with patch('builtins.print') as mock_print:
-            f()
+            # Replace mock_print.assert_called()
+            self.assertTrue(mock_print.call_count > 0)
 
-        # Replace mock_print.assert_called()
-        self.assertTrue(mock_print.call_count > 0)
-
-        msg_enter = mock_print.call_args_list[0][0][0]
-        msg_exit = mock_print.call_args_list[1][0][0]
-        self.assertEqual(
-            msg_enter,
-            MSG_FORMATS.enter.format(
-                func_name='f', args_str=str(()) + ' ' + str({})
-            ),
-        )
-        self.assertTrue(mock_print.call_count == 2)
-        self.assertTrue(msg_exit.endswith('1'))
-        self.assertIn('f() 0.', msg_exit)
+            msg_enter = mock_print.call_args_list[0][0][0]
+            msg_exit = mock_print.call_args_list[1][0][0]
+            self.assertEqual(
+                msg_enter,
+                MSG_FORMATS.enter.format(
+                    func_name='f', args_str=str(()) + ' ' + str({})
+                ),
+            )
+            self.assertTrue(mock_print.call_count == 2)
+            self.assertTrue(msg_exit.endswith('1'))
+            self.assertIn('f() 0.', msg_exit)
 
     def test_evar_single_msg(self):
-        os.environ['LOGF_SINGLE_MSG'] = 'True'
+        ef, pf = evar_and_param('LOGF_SINGLE_MSG', 'True', 'single_msg', True)
 
-        @logf()
-        def f():
-            return 1
+        outs = []
+        for f in [ef(), pf()]:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+            outs.append(msgs.output)
+            msgs = msgs.output
 
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-        msgs = msgs.output
-
-        self.assertTrue(len(msgs) == 1)
-        self.assertTrue(msgs[0].endswith('1'))
-        self.assertIn('f() 0.', msgs[0])
-        self.assertTrue('()' in msgs[0])
+            self.assertTrue(len(msgs) == 1)
+            self.assertTrue(msgs[0].endswith('1'))
+            self.assertIn('f() 0.', msgs[0])
 
     def test_evar_max_str_len(self):
-        os.environ['LOGF_MAX_STR_LEN'] = '10'
+        ef, pf = evar_and_param(
+            'LOGF_MAX_STR_LEN', '100', 'max_str_len', 100, 'a' * 500
+        )
 
-        @logf()
-        def f():
-            return 'a' * 100
-
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-        msgs = msgs.output
-        self.assertIn('a' * 10 + '...', msgs[1])
+        for f in [ef(), pf()]:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+            msgs = msgs.output
+            self.assertTrue(len(msgs) == 2)
+            self.assertTrue(len(msgs[1]) < 200)
 
     def test_evar_log_args(self):
-        os.environ['LOGF_LOG_ARGS'] = 'False'
+        ef, pf = evar_and_param(
+            'LOGF_LOG_ARGS',
+            'False',
+            'log_args',
+            False,
+            1,
+            ('arg1', 'arg2'),
+            {'kwarg1': 'kwarg2'},
+        )
 
-        @logf()
-        def f(*args, **kwargs):
-            return 1
-
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f('onetwothree')
-
-        msgs = msgs.output
-        self.assertNotIn('onetwothree', msgs[0])
+        for f in [ef(), pf()]:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+            msgs = msgs.output
+            self.assertTrue(len(msgs) == 2)
+            self.assertIn('f()', msgs[0])
+            self.assertIn('f()', msgs[1])
+            for _not in ['arg1', 'arg2', 'kwarg1', 'kwarg2']:
+                self.assertNotIn(_not, msgs[0])
+                self.assertNotIn(_not, msgs[1])
 
     def test_evar_log_return(self):
-        os.environ['LOGF_LOG_RETURN'] = 'False'
+        ef, pf = evar_and_param(
+            'LOGF_LOG_RETURN', 'False', 'log_return', False, 'returnme'
+        )
 
-        @logf(log_return=False)
-        def f():
-            return 1
-
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-        msgs = msgs.output
-        self.assertFalse(msgs[1].endswith('1'))
+        for f in [ef(), pf()]:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+            msgs = msgs.output
+            self.assertTrue(len(msgs) == 2)
+            self.assertNotIn('returnme', msgs[1])
 
     def test_evar_log_exec_time(self):
-        os.environ['LOGF_LOG_EXEC_TIME'] = 'False'
+        ef, pf = evar_and_param(
+            'LOGF_LOG_EXEC_TIME', 'False', 'log_exec_time', False
+        )
 
-        @logf(log_exec_time=False)
-        def f():
-            return 1
+        for f in [ef(), pf()]:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+            msgs = msgs.output
+            print(msgs)
+            self.assertNotIn('0.', msgs[0])
 
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-        msgs = msgs.output
-        self.assertFalse('0.' in msgs[1])
-
-    def test_evar_use_logger(self):
+    def test_evar_use_logger_str(self):
         os.environ['LOGF_USE_LOGGER'] = 'logf'
 
         @logf()
         def f():
             return 1
 
-        with patch('logging.Logger.log') as mock_log:
-            from logfunc.main import getLogger
+        from logfunc.main import getLogger
 
+        with patch('logfunc.main.getLogger') as mock_getLogger:
+            with patch('logfunc.main.handle_log') as mock_handle_log:
+                mock_getLogger.return_value = 'logf'
+                f()
+
+        self.assertTrue(mock_handle_log.call_count > 0)
+        self.assertIn(getLogger('logf'), mock_handle_log.call_args_list[0][0])
+
+        @logf(use_logger='logf')
+        def f():
+            return 1
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
             with patch('logfunc.main.getLogger') as mock_getLogger:
-                with patch('logfunc.main.handle_log') as mock_handle_log:
-                    mock_getLogger.return_value = 'logf'
-                    f()
+                f()
 
         self.assertTrue(mock_handle_log.call_count > 0)
         self.assertIn(getLogger('logf'), mock_handle_log.call_args_list[0][0])
@@ -213,6 +259,46 @@ class TestLogfEnvVars(unittest.TestCase):
 
         msgs = msgs.output
         self.assertTrue('0.' not in msgs[1])
+
+
+class TestLogfParams(unittest.TestCase):
+    def setUp(self):
+        clear_env_vars()
+
+    def test_passed_logger(self):
+        logger = getLogger('logf')
+
+        @logf(use_logger=logger)
+        def f():
+            return 1
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            f()
+
+        self.assertTrue(mock_handle_log.call_count > 0)
+        self.assertIn(logger, mock_handle_log.call_args_list[0][0])
+
+    def test_passed_logger_str(self):
+        @logf(use_logger='logf')
+        def f():
+            return 1
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            f()
+
+        self.assertTrue(mock_handle_log.call_count > 0)
+        self.assertIn(getLogger('logf'), mock_handle_log.call_args_list[0][0])
+
+    def test_log_exception_false(self):
+        @logf(log_exception=False, single_msg=True)
+        def f():
+            raise ValueError('Test Error')
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            with self.assertRaises(ValueError):
+                f()
+
+        self.assertTrue(mock_handle_log.call_count == 0)
 
 
 # Helper function to run async functions in tests
@@ -265,6 +351,18 @@ class TestLogfAsync(unittest.TestCase):
         await async_func('logged')
         output = sys.stdout.getvalue()
         self.assertNotIn('logged', output)
+
+    @async_test
+    async def test_async_no_exception(self):
+        @logf(log_exception=False, single_msg=True)
+        async def async_func():
+            raise ValueError('Test Error')
+
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            with self.assertRaises(ValueError):
+                await async_func()
+
+        self.assertEqual(mock_handle_log.call_count, 0)
 
 
 class TestLogfErrorHandling(unittest.TestCase):
