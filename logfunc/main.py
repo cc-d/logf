@@ -6,6 +6,7 @@ import re
 import string
 import sys
 import time
+import threading
 from traceback import format_exception
 from datetime import datetime
 from functools import wraps
@@ -21,11 +22,14 @@ from typing import (
 )
 from logging import getLogger, Logger
 
-
-from .utils import loglevel_int, handle_log, trunc_str
+from .utils import loglevel_int, handle_log, trunc_str, last_traceback
 from .config import Env, EVARS, MSG_FORMATS
 
 from .defaults import TRUNC_STR_LEN
+
+
+# Thread-local storage to track depth of logf calls per thread
+_local = threading.local()
 
 
 def logf(
@@ -39,7 +43,8 @@ def logf(
     use_logger: Opt[U[Logger, str]] = None,
     log_stack_info: bool = False,
     log_exception: bool = True,
-    **kwargs
+    single_exception: bool = True,
+    **kwargs,
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
@@ -66,9 +71,12 @@ def logf(
             Can be overridden by the evar LOGF_STACK_INFO.
             Defaults to False
         log_exception (bool): Should exceptions be logged? Defaults to True.
+        single_exception (bool): Should only the last exception be logged?
+            Defaults to True.
     Returns:
         Callable[..., Callable[..., Any]]: The executed decorated function.
     """
+
     _env = Env()
     # for backwards compatability, override log_exec_time using
     # the measure_time kwarg if present
@@ -96,17 +104,29 @@ def logf(
                 log_stack_info = _ev.lower() == 'true'
             elif ev == 'LOGF_LOG_EXCEPTION':
                 log_exception = _ev.lower() == 'true'
+            elif ev == 'LOGF_SINGLE_EXCEPTION':
+                single_exception = _ev.lower() == 'true'
 
     # if param use_logger is a string, convert it to a logger
     if use_logger is not None and not isinstance(use_logger, Logger):
         use_logger = getLogger(use_logger)
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
+
+        # ensure only last traceback is logged
+
         # handle async funcs
+        if log_exception and single_exception:
+            if hasattr(_local, 'depth'):
+                _local.depth += 1
+            else:
+                _local.depth = 1
+
         if _insp.iscoroutinefunction(func):
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
+
                 start_time = (
                     asyncio.get_event_loop().time() if log_exec_time else None
                 )
@@ -138,7 +158,9 @@ def logf(
                     try:
                         result = await func(*args, **kwargs)
                     except Exception as e:
-                        if use_print:
+                        if hasattr(_local, 'depth') and _local.depth > 1:
+                            pass
+                        elif use_print:
                             format_exception(e, value=e, tb=e.__traceback__)
                         else:
                             logmsg = MSG_FORMATS.error.format(
@@ -150,6 +172,12 @@ def logf(
                                 logmsg, 'ERROR', use_logger, log_exception
                             )
                         raise e
+                    finally:
+                        if hasattr(_local, 'depth'):
+                            _local.depth -= 1
+                            # print('finally', _local.depth)
+                            if _local.depth == 0:
+                                del _local.depth
                 else:
                     result = await func(*args, **kwargs)
 
@@ -202,9 +230,9 @@ def logf(
 
             @wraps(func)
             def decorator(*args, **kwargs) -> Any:
+
                 # Start the timer if required and execute the function.
                 start_time = time.time() if log_exec_time else None
-
                 if log_args:
                     func_args = str(args)
                     func_kwargs = str(kwargs)
@@ -231,12 +259,13 @@ def logf(
 
                 if log_exception:
                     try:
+
                         result = func(*args, **kwargs)
                     except Exception as e:
-                        if use_print:
-
+                        if hasattr(_local, 'depth') and _local.depth != 1:
+                            pass
+                        elif use_print:
                             format_exception(e, value=e, tb=e.__traceback__)
-
                         else:
                             logmsg = MSG_FORMATS.error.format(
                                 func_name=func.__name__,
@@ -249,7 +278,14 @@ def logf(
                                 use_logger,
                                 log_exception=log_exception,
                             )
-                        raise e
+
+                        raise
+                    finally:
+                        if hasattr(_local, 'depth'):
+                            _local.depth -= 1
+                            # print('finally', _local.depth)
+                            if _local.depth == 0:
+                                del _local.depth
                 else:
                     result = func(*args, **kwargs)
 
