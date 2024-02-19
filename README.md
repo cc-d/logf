@@ -56,8 +56,9 @@ This setup ensures automatic logging of function name, parameters, return values
 - `single_msg`: Consolidate all log data into a single message.
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
 - `log_stack_info`: Pass `stack_info=$x` to `.log()` but not print
-- `use_logger`: Pass a logger name or logger object to use instead of logging.log()
+- `use_logger`: Pass a logger name or logger object to use instead of logging.lo
 - `log_exception`: Log exceptions if they occur before they are raised.
+- `single_exception`: Consolidate all exception log data into a single message (intended to be used with `log_exception`).
 
 **print_all** used to be an env var, now just unset LOGF_LEVEL and set USE_PRINT=True for the same effect.
 
@@ -65,18 +66,19 @@ This setup ensures automatic logging of function name, parameters, return values
 
 Modify the behavior of `@logf()` using environment variables:
 
-| Env Var            | Example Values       |
-| ------------------ | -------------------- |
-| LOGF_LEVEL         | DEBUG, INFO, WARNING |
-| LOGF_MAX_STR_LEN   | 10, 50, 10000000     |
-| LOGF_SINGLE_MSG    | True, False          |
-| LOGF_USE_PRINT     | True, False          |
-| LOGF_STACK_INFO    | True, False          |
-| LOGF_LOG_EXEC_TIME | True, False          |
-| LOGF_LOG_ARGS      | True, False          |
-| LOGF_LOG_RETURN    | True, False          |
-| LOGF_LOG_EXCEPTION | True, False          |
-| LOGF_USE_LOGGER    | 'logger_name'        |
+| Env Var               | Example Values       |
+| --------------------- | -------------------- |
+| LOGF_LEVEL            | DEBUG, INFO, WARNING |
+| LOGF_MAX_STR_LEN      | 10, 50, 10000000     |
+| LOGF_SINGLE_MSG       | True, False          |
+| LOGF_USE_PRINT        | True, False          |
+| LOGF_STACK_INFO       | True, False          |
+| LOGF_LOG_EXEC_TIME    | True, False          |
+| LOGF_LOG_ARGS         | True, False          |
+| LOGF_LOG_RETURN       | True, False          |
+| LOGF_LOG_EXCEPTION    | True, False          |
+| LOGF_USE_LOGGER       | 'logger_name'        |
+| LOGF_SINGLE_EXCEPTION | True, False          |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
