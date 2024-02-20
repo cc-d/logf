@@ -76,7 +76,7 @@ def logf(
         single_exception (bool): Should only the last exception be logged?
             Defaults to True.
     Returns:
-        Callable[..., Callable[..., Any]]: The executed decorated function.
+        The executed decorated function or coroutine result.
     """
 
     _env = Env()
@@ -132,14 +132,12 @@ def logf(
                 start_time = (
                     asyncio.get_event_loop().time() if log_exec_time else None
                 )
+                args_str = ''
                 if log_args:
-                    func_args = str(args)
-                    func_kwargs = str(kwargs)
+                    func_args, func_kwargs = str(args), str(kwargs)
                     args_str = MSG_FORMATS.argstr.format(
                         func_args=func_args, func_kwargs=func_kwargs
                     )
-                else:
-                    args_str = ''
 
                 if not single_msg:
                     logmsg = MSG_FORMATS.enter.format(
@@ -177,8 +175,7 @@ def logf(
                     finally:
                         if hasattr(_local, 'depth'):
                             _local.depth -= 1
-                            # print('finally', _local.depth)
-                            if _local.depth == 0:
+                            if _local.depth <= 0:
                                 del _local.depth
                 else:
                     result = await func(*args, **kwargs)
@@ -214,14 +211,12 @@ def logf(
 
                 # Start the timer if required and execute the function.
                 start_time = time.time() if log_exec_time else None
+                args_str = ''
                 if log_args:
-                    func_args = str(args)
-                    func_kwargs = str(kwargs)
+                    func_args, func_kwargs = str(args), str(kwargs)
                     args_str = MSG_FORMATS.argstr.format(
                         func_args=func_args, func_kwargs=func_kwargs
                     )
-                else:
-                    args_str = ''
 
                 # Log the enter message if required
                 if not single_msg:
@@ -243,7 +238,7 @@ def logf(
 
                         result = func(*args, **kwargs)
                     except Exception as e:
-                        if hasattr(_local, 'depth') and _local.depth != 1:
+                        if hasattr(_local, 'depth') and _local.depth > 1:
                             pass
                         elif use_print:
                             format_exception(e, value=e, tb=e.__traceback__)
@@ -264,8 +259,7 @@ def logf(
                     finally:
                         if hasattr(_local, 'depth'):
                             _local.depth -= 1
-                            # print('finally', _local.depth)
-                            if _local.depth == 0:
+                            if _local.depth <= 0:
                                 del _local.depth
                 else:
                     result = func(*args, **kwargs)
