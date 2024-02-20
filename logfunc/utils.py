@@ -91,10 +91,3 @@ def handle_log(
     )
 
     return logfunc
-
-
-def last_traceback(e):
-    """Returns the last traceback from an exception."""
-    tb = e.__traceback__
-    tb_list = traceback.format_tb(tb)
-    return tb_list[-1]

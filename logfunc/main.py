@@ -22,7 +22,7 @@ from typing import (
 )
 from logging import getLogger, Logger
 
-from .utils import loglevel_int, handle_log, trunc_str, last_traceback
+from .utils import loglevel_int, handle_log, trunc_str
 from .config import Env, EVARS, MSG_FORMATS
 
 from .defaults import TRUNC_STR_LEN
