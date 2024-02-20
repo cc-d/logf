@@ -27,6 +27,8 @@ from .config import Env, EVARS, MSG_FORMATS
 
 from .defaults import TRUNC_STR_LEN
 
+from . import msgs
+
 
 # Thread-local storage to track depth of logf calls per thread
 _local = threading.local()
@@ -181,37 +183,16 @@ def logf(
                 else:
                     result = await func(*args, **kwargs)
 
-                if single_msg:
-                    logmsg = MSG_FORMATS.single.format(
-                        func_name=func.__name__,
-                        exec_time=(
-                            '%.5f'
-                            % (asyncio.get_event_loop().time() - start_time)
-                            if log_exec_time
-                            else ''
-                        ),
-                        args_str=args_str,
-                        result=(
-                            trunc_str(result, max_str_len)
-                            if log_return
-                            else ''
-                        ),
+                result = trunc_str(result, max_str_len) if log_return else ''
+                end_time = ''
+                if log_exec_time:
+                    end_time = '%.5f' % (
+                        asyncio.get_event_loop().time() - start_time
                     )
-                else:
-                    logmsg = MSG_FORMATS.exit.format(
-                        func_name=func.__name__,
-                        exec_time=(
-                            '%.5f'
-                            % (asyncio.get_event_loop().time() - start_time)
-                            if log_exec_time
-                            else ''
-                        ),
-                        result=(
-                            trunc_str(result, max_str_len)
-                            if log_return
-                            else ''
-                        ),
-                    )
+
+                logmsg = msgs.exit_msg(
+                    single_msg, func.__name__, end_time, args_str, result
+                )
 
                 if use_print:
                     print(logmsg)
@@ -289,31 +270,14 @@ def logf(
                 else:
                     result = func(*args, **kwargs)
 
-                if single_msg:
-                    logmsg = MSG_FORMATS.single.format(
-                        func_name=func.__name__,
-                        exec_time=('%.5f' % (time.time() - start_time)),
-                        args_str=args_str,
-                        result=(
-                            trunc_str(result, max_str_len)
-                            if log_return
-                            else ''
-                        ),
-                    )
-                else:
-                    logmsg = MSG_FORMATS.exit.format(
-                        func_name=func.__name__,
-                        exec_time=(
-                            '%.5f' % (time.time() - start_time)
-                            if log_exec_time
-                            else ''
-                        ),
-                        result=(
-                            trunc_str(result, max_str_len)
-                            if log_return
-                            else ''
-                        ),
-                    )
+                result = trunc_str(result, max_str_len) if log_return else ''
+                end_time = ''
+                if log_exec_time:
+                    end_time = '%.5f' % (time.time() - start_time)
+
+                logmsg = msgs.exit_msg(
+                    single_msg, func.__name__, end_time, args_str, result
+                )
 
                 if use_print:
                     print(logmsg)
