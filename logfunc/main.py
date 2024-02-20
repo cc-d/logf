@@ -180,7 +180,6 @@ def logf(
                 else:
                     result = await func(*args, **kwargs)
 
-                result = trunc_str(result, max_str_len) if log_return else ''
                 end_time = ''
                 if log_exec_time:
                     end_time = '%.5f' % (
@@ -188,7 +187,11 @@ def logf(
                     )
 
                 logmsg = msgs.exit_msg(
-                    single_msg, func.__name__, end_time, args_str, result
+                    single_msg,
+                    func.__name__,
+                    end_time,
+                    args_str,
+                    trunc_str(result, max_str_len) if log_return else '',
                 )
 
                 if use_print:
@@ -264,13 +267,16 @@ def logf(
                 else:
                     result = func(*args, **kwargs)
 
-                result = trunc_str(result, max_str_len) if log_return else ''
                 end_time = ''
                 if log_exec_time:
                     end_time = '%.5f' % (time.time() - start_time)
 
                 logmsg = msgs.exit_msg(
-                    single_msg, func.__name__, end_time, args_str, result
+                    single_msg,
+                    func.__name__,
+                    end_time,
+                    args_str,
+                    trunc_str(result, max_str_len) if log_return else '',
                 )
 
                 if use_print:

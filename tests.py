@@ -592,3 +592,20 @@ class TestLogfMultiThreadedSyncExceptionHandling(unittest.TestCase):
             self.assertEqual(mock_handle_log.call_count, expected_count * 5)
             for result in results:
                 print(result)
+
+
+class TestLogfRegression(unittest.TestCase):
+    def setUp(self):
+        clear_env_vars()
+
+    def test_return_not_str(self):
+        @logf()
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            ret = f()
+
+        msgs = msgs.output
+        self.assertIn('1', msgs[1])
+        self.assertEqual(ret, 1)
