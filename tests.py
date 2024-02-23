@@ -609,3 +609,27 @@ class TestLogfRegression(unittest.TestCase):
         msgs = msgs.output
         self.assertIn('1', msgs[1])
         self.assertEqual(ret, 1)
+
+    def test_error_str_method(self):
+        class CustomError(Exception):
+            pass
+
+        class StrError:
+            def __init__(self):
+                pass
+
+            def __str__(self):
+                raise CustomError("raise error in __str__")
+
+        @logf()
+        def f():
+            return StrError()
+
+        with self.assertRaises(CustomError):
+            f()
+
+        @logf(log_return=False)
+        def f():
+            return StrError()
+
+        f()
