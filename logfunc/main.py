@@ -22,7 +22,7 @@ from typing import (
 )
 from logging import getLogger, Logger
 
-from .utils import loglevel_int, handle_log, trunc_str
+from .utils import loglevel_int, handle_log, trunc_str, build_args_str
 from .config import Env, EVARS, MSG_FORMATS
 
 from .defaults import TRUNC_STR_LEN
@@ -134,10 +134,7 @@ def logf(
                 )
                 args_str = ''
                 if log_args:
-                    func_args, func_kwargs = str(args), str(kwargs)
-                    args_str = MSG_FORMATS.argstr.format(
-                        func_args=func_args, func_kwargs=func_kwargs
-                    )
+                    args_str = build_args_str(args, kwargs, max_str_len)
 
                 if not single_msg:
                     logmsg = MSG_FORMATS.enter.format(
@@ -216,10 +213,7 @@ def logf(
                 start_time = time.time() if log_exec_time else None
                 args_str = ''
                 if log_args:
-                    func_args, func_kwargs = str(args), str(kwargs)
-                    args_str = MSG_FORMATS.argstr.format(
-                        func_args=func_args, func_kwargs=func_kwargs
-                    )
+                    args_str = build_args_str(args, kwargs, max_str_len)
 
                 # Log the enter message if required
                 if not single_msg:

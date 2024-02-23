@@ -1,6 +1,5 @@
 import asyncio
 from .config import MSG_FORMATS
-from .utils import trunc_str
 
 
 def exit_msg(single_msg, func_name, exec_time, args_str, result_str) -> str:

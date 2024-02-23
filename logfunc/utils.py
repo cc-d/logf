@@ -17,9 +17,17 @@ from typing import (
     Iterable,
     Coroutine,
 )
-
 from .config import Env, EVARS
+from .msgs import MSG_FORMATS
 from .defaults import TRUNC_STR_LEN
+
+
+def build_args_str(
+    args: Tuple, kwargs: Dict, max_length: Union[int, None]
+) -> str:
+    """formats the args and kwargs into a string for logging"""
+    args, kwargs = trunc_str(args, max_length), trunc_str(kwargs, max_length)
+    return MSG_FORMATS.argstr.format(func_args=args, func_kwargs=kwargs)
 
 
 def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
@@ -37,7 +45,10 @@ def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
         str: The truncated string.
     """
     if not isinstance(tstr, str):
-        tstr = str(tstr)
+        try:
+            tstr = str(tstr)
+        except Exception as e:
+            tstr = '[LOGF STR ERROR: {}]'.format(e)
 
     if max_length is None or len(tstr) < max_length:
         return tstr

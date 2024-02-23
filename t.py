@@ -1,4 +1,5 @@
 from logfunc.main import logf
+import asyncio
 from time import sleep
 
 

@@ -23,6 +23,7 @@ from logfunc.main import (
     handle_log,
     logf,
     loglevel_int,
+    build_args_str,
     trunc_str,
 )
 
@@ -625,11 +626,9 @@ class TestLogfRegression(unittest.TestCase):
         def f():
             return StrError()
 
-        with self.assertRaises(CustomError):
-            f()
+        with patch('logfunc.main.build_args_str') as mock_build_args_str:
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
 
-        @logf(log_return=False)
-        def f():
-            return StrError()
-
-        f()
+        self.assertTrue(mock_build_args_str.call_count > 0)
+        self.assertIn('[LOGF STR ERROR', msgs.output[1])
