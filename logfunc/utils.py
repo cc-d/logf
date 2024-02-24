@@ -22,10 +22,12 @@ from .msgs import MSG_FORMATS
 from .defaults import TRUNC_STR_LEN
 
 
-def build_args_str(
-    args: Tuple, kwargs: Dict, max_length: Union[int, None]
+def build_argstr(
+    args: Tuple, kwargs: Dict, max_length: Union[int, None], log_args: bool
 ) -> str:
     """formats the args and kwargs into a string for logging"""
+    if not log_args:
+        return ''
     args, kwargs = trunc_str(args, max_length), trunc_str(kwargs, max_length)
     return MSG_FORMATS.argstr.format(func_args=args, func_kwargs=kwargs)
 
