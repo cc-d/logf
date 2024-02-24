@@ -35,4 +35,41 @@ def run_in_thread(a):
         pass
 
 
-run_in_thread(4)
+# run_in_thread(4)
+
+import os
+
+
+decorator_configs = [
+    {},
+    {'level': 'info', 'log_args': False},
+    {'log_return': False, 'single_msg': True},
+    {'use_print': True, 'log_exception': False},
+    {'single_exception': False, 'use_logger': 'logname'},
+    {'level': 'debug', 'log_args': False, 'log_return': False},
+    {'single_msg': True, 'use_print': True, 'log_exception': False},
+    {
+        'log_exception': True,
+        'single_exception': False,
+        'use_logger': 'logname',
+        'level': 'info',
+    },
+    # Add more combinations as needed
+]
+
+
+def test_function():
+    print("Test function executed")
+
+
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+# Apply each configuration to the test function and execute it
+for config in decorator_configs:
+    decorated_test_function = logf(**config)(test_function)
+    print(f"Testing configuration: {config}")
+    decorated_test_function()
+    print("-" * 50)

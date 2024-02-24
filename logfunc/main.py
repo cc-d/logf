@@ -82,10 +82,11 @@ def logf(
     """
 
     _env = Env()
-    # shorthands
+    # shorthands, maintaining backwards compatability
     max_str, log_time, single = max_str_len, log_exec_time, single_msg
     log_ex, single_ex = log_exception, single_exception
     log_stack = log_stack_info
+
     # for backwards compatability, override log_exec_time using
     # the measure_time kwarg if present
     if 'measure_time' in kwargs:
@@ -130,23 +131,23 @@ def logf(
             else:
                 _local.depth = 1
 
+        args_enter = (
+            max_str,
+            log_args,
+            single,
+            use_print,
+            use_logger,
+            log_stack,
+            level,
+        )
+
         if _insp.iscoroutinefunction(func):
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
                 _start = aio.get_event_loop().time() if log_time else None
-                argstr = _enter(
-                    fname,
-                    args,
-                    kwargs,
-                    max_str,
-                    log_args,
-                    single,
-                    use_print,
-                    use_logger,
-                    log_stack,
-                    level,
-                )
+                fargs = (fname, args, kwargs)
+                argstr = _enter(*fargs, *args_enter)
                 if log_ex:
                     try:
                         result = await func(*args, **kwargs)
@@ -158,12 +159,11 @@ def logf(
                 else:
                     result = await func(*args, **kwargs)
 
-                etime = _endtime(_start, aio.get_event_loop().time())
                 _msg_exit(
                     result,
                     single,
                     fname,
-                    etime,
+                    _endtime(_start, aio.get_event_loop().time()),
                     argstr,
                     use_print,
                     use_logger,
@@ -180,16 +180,10 @@ def logf(
 
             @wraps(func)
             def decorator(*args, **kwargs) -> Any:
-
+                fargs = (fname, args, kwargs)
                 # Start the timer if required and execute the function.
                 _start = time.time() if log_time else None
-                argstr = build_argstr(args, kwargs, max_str, log_args)
-
-                # Log the enter message if required
-                if not single:
-                    _msg_enter(
-                        fname, argstr, use_print, use_logger, log_stack, level
-                    )
+                argstr = _enter(*fargs, *args_enter)
                 if log_ex:
                     try:
 
@@ -202,13 +196,11 @@ def logf(
                 else:
                     result = func(*args, **kwargs)
 
-                etime = _endtime(_start, time.time())
-
                 _msg_exit(
                     result,
                     single,
                     fname,
-                    etime,
+                    _endtime(_start, time.time()),
                     argstr,
                     use_print,
                     use_logger,
