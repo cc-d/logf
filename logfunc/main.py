@@ -123,14 +123,15 @@ def logf(
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
 
         fname = func.__name__
+
         # ensure only last traceback is logged
-        # handle async funcs
         if log_ex and single_ex:
             if hasattr(_local, 'depth'):
                 _local.depth += 1
             else:
                 _local.depth = 1
 
+        # this is used to create the enter args str
         args_enter = (
             max_str,
             log_args,
@@ -146,8 +147,7 @@ def logf(
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
                 _start = aio.get_event_loop().time() if log_time else None
-                fargs = (fname, args, kwargs)
-                argstr = _enter(*fargs, *args_enter)
+                argstr = _enter(*(fname, args, kwargs), *args_enter)
                 if log_ex:
                     try:
                         result = await func(*args, **kwargs)
@@ -180,10 +180,8 @@ def logf(
 
             @wraps(func)
             def decorator(*args, **kwargs) -> Any:
-                fargs = (fname, args, kwargs)
-                # Start the timer if required and execute the function.
                 _start = time.time() if log_time else None
-                argstr = _enter(*fargs, *args_enter)
+                argstr = _enter(*(fname, args, kwargs), *args_enter)
                 if log_ex:
                     try:
 
@@ -214,6 +212,25 @@ def logf(
         return decorator
 
     return wrapper
+
+
+def _argstr(
+    max_str: U[int, None],
+    log_args: bool,
+    single: bool,
+    use_print: bool,
+    use_logger: U[Logger, str, None],
+    log_stack: bool,
+    level: U[int, str, None],
+    func_name: str,
+    args: Tuple,
+    kwargs: Dict,
+) -> str:
+    """Handles the enter for decorated functions and returns argstr"""
+    argstr = build_argstr(args, kwargs, max_str, log_args)
+    if not single:
+        _msg_enter(func_name, argstr, use_print, use_logger, log_stack, level)
+    return argstr
 
 
 def _ex(
