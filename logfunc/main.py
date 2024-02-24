@@ -133,13 +133,7 @@ def logf(
 
         # this is used to create the enter args str
         args_enter = (
-            max_str,
-            log_args,
-            single,
-            use_print,
-            use_logger,
-            log_stack,
-            level,
+            max_str, log_args, single, use_print, use_logger, log_stack, level,
         )
 
         if _insp.iscoroutinefunction(func):
@@ -160,17 +154,10 @@ def logf(
                     result = await func(*args, **kwargs)
 
                 _msg_exit(
-                    result,
-                    single,
-                    fname,
+                    result, single, fname,
                     _endtime(_start, aio.get_event_loop().time()),
-                    argstr,
-                    use_print,
-                    use_logger,
-                    log_stack,
-                    level,
-                    max_str,
-                    log_return,
+                    argstr, use_print, use_logger, log_stack,
+                    level, max_str, log_return
                 )
 
                 return result
@@ -195,42 +182,16 @@ def logf(
                     result = func(*args, **kwargs)
 
                 _msg_exit(
-                    result,
-                    single,
-                    fname,
+                    result, single, fname,
                     _endtime(_start, time.time()),
-                    argstr,
-                    use_print,
-                    use_logger,
-                    log_stack,
-                    level,
-                    max_str,
-                    log_return,
+                    argstr, use_print, use_logger, log_stack,
+                    level, max_str, log_return,
                 )
                 return result
 
         return decorator
 
     return wrapper
-
-
-def _argstr(
-    max_str: U[int, None],
-    log_args: bool,
-    single: bool,
-    use_print: bool,
-    use_logger: U[Logger, str, None],
-    log_stack: bool,
-    level: U[int, str, None],
-    func_name: str,
-    args: Tuple,
-    kwargs: Dict,
-) -> str:
-    """Handles the enter for decorated functions and returns argstr"""
-    argstr = build_argstr(args, kwargs, max_str, log_args)
-    if not single:
-        _msg_enter(func_name, argstr, use_print, use_logger, log_stack, level)
-    return argstr
 
 
 def _ex(
