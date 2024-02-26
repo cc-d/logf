@@ -23,6 +23,20 @@ def f1(a):
     f2(a)
 
 
+def decorator(func):
+    def wrapper(*args, **kwargs):
+        print('in wrapper of decorator')
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@decorator
+def f0():
+    f1(4)
+
+
+f0()
 import threading
 
 
@@ -35,41 +49,31 @@ def run_in_thread(a):
         pass
 
 
-# run_in_thread(4)
+def errs():
+    @logf(use_print=True, log_exception=True)
+    def f1():
+        raise Exception("f1 error")
 
-import os
+    @logf(use_print=False, log_exception=True)
+    def f2():
+        @logf(use_print=False, log_exception=True)
+        def f3():
+            raise Exception("f3 error")
 
+        f3()
 
-decorator_configs = [
-    {},
-    {'level': 'info', 'log_args': False},
-    {'log_return': False, 'single_msg': True},
-    {'use_print': True, 'log_exception': False},
-    {'single_exception': False, 'use_logger': 'logname'},
-    {'level': 'debug', 'log_args': False, 'log_return': False},
-    {'single_msg': True, 'use_print': True, 'log_exception': False},
-    {
-        'log_exception': True,
-        'single_exception': False,
-        'use_logger': 'logname',
-        'level': 'info',
-    },
-    # Add more combinations as needed
-]
+    try:
+        print('try f1')
+        f1()
+        print('end f1')
+    except Exception as e:
+        print('except f1')
+        pass
 
-
-def test_function():
-    print("Test function executed")
-
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
-
-
-# Apply each configuration to the test function and execute it
-for config in decorator_configs:
-    decorated_test_function = logf(**config)(test_function)
-    print(f"Testing configuration: {config}")
-    decorated_test_function()
-    print("-" * 50)
+    try:
+        print('try f2')
+        f2()
+        print('end f2')
+    except Exception as e:
+        print('except f2')
+        pass
