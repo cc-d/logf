@@ -478,6 +478,7 @@ class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
 
 
 class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(unittest.TestCase):
+    # replace with IsolatedAsyncioTestCase on 3.5+
     def setUp(self):
         clear_env_vars()
         os.environ['LOGF_SINGLE_MSG'] = 'True'
