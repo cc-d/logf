@@ -477,7 +477,9 @@ class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
             self.assertEqual(mock__ex.call_count, 3)
 
 
-class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(unittest.TestCase):
+class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
+    unittest.IsolatedAsyncioTestCase
+):
     # replace with IsolatedAsyncioTestCase on 3.5+
     def setUp(self):
         clear_env_vars()
@@ -551,13 +553,16 @@ class TestLogfMultiThreadedSyncExceptionHandling(unittest.TestCase):
 
             f2()
 
-        # Note: We don't perform assertion here, just call the function
-        function_raises()
+        with patch('logfunc.main.handle_log') as mock_handle_log:
+            with self.assertRaises(ValueError):
+                function_raises()
+
+        self.assertEqual(mock_handle_log.call_count, 1)
 
     def test_multithreaded_single_exception_true(self):
         expected_count = 1
         results = []
-        with patch('logfunc.main.handle_log') as mock_handle_log:
+        with patch('logfunc.main._ex') as mock__ex:
             with ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [
                     executor.submit(self.function_raises_wrapper, True)
@@ -566,15 +571,12 @@ class TestLogfMultiThreadedSyncExceptionHandling(unittest.TestCase):
                 for future in as_completed(futures):
                     # Collect results or exceptions from futures if necessary
                     results.append(future.exception())
-            # Perform assertions here in the main thread
-            self.assertEqual(mock_handle_log.call_count, expected_count * 5)
-            for result in results:
-                print(result)
+        self.assertEqual(mock__ex.call_count, expected_count * 5)
 
     def test_multithreaded_single_exception_false(self):
         expected_count = 3
         results = []
-        with patch('logfunc.main.handle_log') as mock_handle_log:
+        with patch('logfunc.main._ex') as mock__ex:
             with ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [
                     executor.submit(self.function_raises_wrapper, False)
@@ -582,9 +584,7 @@ class TestLogfMultiThreadedSyncExceptionHandling(unittest.TestCase):
                 ]
                 for future in as_completed(futures):
                     results.append(future.exception())
-            self.assertEqual(mock_handle_log.call_count, expected_count * 5)
-            for result in results:
-                print(result)
+        self.assertEqual(mock__ex.call_count, expected_count * 5)
 
 
 class TestLogfRegression(unittest.TestCase):
