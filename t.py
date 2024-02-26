@@ -18,7 +18,11 @@ def f1(a):
 
             f4(a)
 
-        f3(a)
+        def f5(a):
+
+            f3(a)
+
+        f5(a)
 
     f2(a)
 
@@ -36,7 +40,10 @@ def f0():
     f1(4)
 
 
-f0()
+try:
+    f0()
+except Exception as e:
+    pass
 import threading
 
 
@@ -52,7 +59,11 @@ def run_in_thread(a):
 def errs():
     @logf(use_print=True, log_exception=True)
     def f1():
-        raise Exception("f1 error")
+        @logf(use_print=False, log_exception=True)
+        def f3():
+            raise Exception("f3 error")
+
+        f3()
 
     @logf(use_print=False, log_exception=True)
     def f2():
@@ -77,3 +88,6 @@ def errs():
     except Exception as e:
         print('except f2')
         pass
+
+
+# errs()

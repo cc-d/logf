@@ -32,10 +32,6 @@ from .defaults import TRUNC_STR_LEN
 from . import msgs
 
 
-# Thread-local storage to track depth of logf calls per thread
-_local = threading.local()
-
-
 def logf(
     level: Opt[U[int, str]] = None,
     log_args: bool = True,
@@ -48,7 +44,7 @@ def logf(
     log_stack_info: bool = False,
     log_exception: bool = True,
     single_exception: bool = True,
-    **kwargs,
+    **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
@@ -100,30 +96,30 @@ def logf(
         cfg.use_logger = getLogger(use_logger)
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
-
         fname = func.__name__
 
         # ensure only last traceback is logged
-        if cfg.log_ex and cfg.single_ex:
-            if hasattr(_local, 'depth'):
-                _local.depth += 1
-            else:
-                _local.depth = 1
 
         if _insp.iscoroutinefunction(func):
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
+
                 _start = aio.get_event_loop().time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg)
                 if cfg.log_ex:
                     try:
                         result = await func(*args, **kwargs)
                     except Exception as e:
-                        _ex(e, fname, cfg)
+                        e._depth = getattr(e, '_depth', 0) + 1
+                        log_ex = False
+                        if not cfg.single_ex:
+                            log_ex = True
+                        elif cfg.single_ex and e._depth <= 1:
+                            log_ex = True
+                        if log_ex:
+                            _ex(e, fname, cfg)
                         raise e
-                    finally:
-                        _finally()
                 else:
                     result = await func(*args, **kwargs)
 
@@ -142,6 +138,7 @@ def logf(
 
             @wraps(func)
             def decorator(*args, **kwargs) -> Any:
+
                 _start = time.time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg)
                 if cfg.log_ex:
@@ -149,10 +146,16 @@ def logf(
 
                         result = func(*args, **kwargs)
                     except Exception as e:
-                        _ex(e, fname, cfg)
-                        raise
-                    finally:
-                        _finally()
+                        e._depth = getattr(e, '_depth', 0) + 1
+                        log_ex = False
+                        if not cfg.single_ex:
+                            log_ex = True
+                        elif cfg.single_ex and e._depth <= 1:
+                            log_ex = True
+                        if log_ex:
+                            _ex(e, fname, cfg)
+                        raise e
+
                 else:
                     result = func(*args, **kwargs)
 
@@ -168,15 +171,15 @@ def logf(
 
 def _ex(e: Exception, func_name: str, cfg: Cfg) -> None:
     """Handles logging of exceptions raised in decorated functions."""
-    if hasattr(_local, 'depth') and _local.depth > 1:
-        pass
-    elif cfg.use_print:
-        format_exception(e, value=e, tb=e.__traceback__)
+
+    logmsg = MSG_FORMATS.error.format(
+        func_name=func_name, exc_type=type(e).__name__, exc_val=e
+    )
+    if cfg.use_print:
+        fe = format_exception(e, value=e, tb=e.__traceback__)
+        print(''.join([logmsg] + fe).rstrip('\n'))
     else:
-        logmsg = MSG_FORMATS.error.format(
-            func_name=func_name, exc_type=type(e).__name__, exc_val=e
-        )
-        handle_log(logmsg, 'ERROR', cfg.use_logger, cfg.log_stack)
+        handle_log(logmsg, 'ERROR', cfg.use_logger, False, True)
 
 
 def _msg_enter(func_name: str, args_str: str, cfg: Cfg) -> None:
@@ -206,14 +209,6 @@ def _msg_exit(
         handle_log(
             logmsg, cfg.level, cfg.use_logger, log_stack_info=cfg.log_stack
         )
-
-
-def _finally():
-    """DRY to handle conditional logging when multiple embedded logf calls"""
-    if hasattr(_local, 'depth'):
-        _local.depth -= 1
-        if _local.depth <= 0:
-            del _local.depth
 
 
 def _endtime(start_time: U[float, None], end_time: U[float, None]) -> str:
