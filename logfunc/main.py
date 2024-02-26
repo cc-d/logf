@@ -111,14 +111,7 @@ def logf(
                     try:
                         result = await func(*args, **kwargs)
                     except Exception as e:
-                        e._depth = getattr(e, '_depth', 0) + 1
-                        log_ex = False
-                        if not cfg.single_ex:
-                            log_ex = True
-                        elif cfg.single_ex and e._depth <= 1:
-                            log_ex = True
-                        if log_ex:
-                            _ex(e, fname, cfg)
+                        _handle_ex(e, fname, cfg)
                         raise e
                 else:
                     result = await func(*args, **kwargs)
@@ -146,14 +139,7 @@ def logf(
 
                         result = func(*args, **kwargs)
                     except Exception as e:
-                        e._depth = getattr(e, '_depth', 0) + 1
-                        log_ex = False
-                        if not cfg.single_ex:
-                            log_ex = True
-                        elif cfg.single_ex and e._depth <= 1:
-                            log_ex = True
-                        if log_ex:
-                            _ex(e, fname, cfg)
+                        _handle_ex(e, fname, cfg)
                         raise e
 
                 else:
@@ -167,6 +153,18 @@ def logf(
         return decorator
 
     return wrapper
+
+
+def _handle_ex(e: Exception, func_name: str, cfg: Cfg) -> None:
+    """Handles logging of exceptions raised in decorated functions."""
+    e._depth = getattr(e, '_depth', 0) + 1
+    log_ex = False
+    if not cfg.single_ex:
+        log_ex = True
+    elif cfg.single_ex and e._depth <= 1:
+        log_ex = True
+    if log_ex:
+        _ex(e, func_name, cfg)
 
 
 def _ex(e: Exception, func_name: str, cfg: Cfg) -> None:
