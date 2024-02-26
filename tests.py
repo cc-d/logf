@@ -477,9 +477,7 @@ class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
             self.assertEqual(mock__ex.call_count, 3)
 
 
-class TestLogfSingleThreadedAsyncExceptionHandling(
-    unittest.IsolatedAsyncioTestCase
-):
+class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(unittest.TestCase):
     def setUp(self):
         clear_env_vars()
         os.environ['LOGF_SINGLE_MSG'] = 'True'
