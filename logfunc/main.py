@@ -25,7 +25,7 @@ from typing import (
 from logging import getLogger, Logger
 
 from .utils import loglevel_int, handle_log, trunc_str, build_argstr
-from .config import Env, EVARS, MSG_FORMATS, Cfg
+from .config import EVARS, MSG_FORMATS, Cfg
 
 from .defaults import TRUNC_STR_LEN
 
@@ -182,6 +182,9 @@ def _ex(e: Exception, func_name: str, cfg: Cfg) -> None:
 
 def _msg_enter(func_name: str, args_str: str, cfg: Cfg) -> None:
     """Handles logging of the enter message for decorated functions."""
+    if cfg.level is not None and cfg.logf_log_level is not None:
+        if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
+            return
     logmsg = MSG_FORMATS.enter.format(func_name=func_name, args_str=args_str)
     if cfg.use_print:
         print(logmsg)
@@ -193,7 +196,9 @@ def _msg_exit(
     result: Any, func_name: str, end_time: str, args_str: str, cfg: Cfg
 ) -> None:
     """Handles logging of the exit message for decorated functions."""
-
+    if cfg.level is not None and cfg.logf_log_level is not None:
+        if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
+            return
     logmsg = msgs.exit_msg(
         cfg.single,
         func_name,

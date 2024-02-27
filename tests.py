@@ -19,7 +19,6 @@ from logfunc.main import (
     EVARS,
     MSG_FORMATS,
     TRUNC_STR_LEN,
-    Env,
     handle_log,
     logf,
     loglevel_int,
@@ -80,11 +79,6 @@ def evar_and_param(
 class TestLogfEnvVars(unittest.TestCase):
     def setUp(self):
         clear_env_vars()
-
-    def test_no_env_vars(self):
-        env = Env()
-        for evar in EVARS:
-            self.assertIsNone(getattr(env, evar))
 
     def test_defaults(self):
         _long = TRUNC_STR_LEN * 5
@@ -260,6 +254,23 @@ class TestLogfEnvVars(unittest.TestCase):
 
         msgs = msgs.output
         self.assertTrue('0.' not in msgs[1])
+
+    def test_log_under_logf_log_level(self):
+        os.environ['LOGF_LOG_LEVEL'] = 'INFO'
+
+        @logf(level='DEBUG')
+        def f():
+            return 1
+
+        @logf(level='INFO')
+        def f2():
+            return 1
+
+        with self.assertNoLogs(level=logging.DEBUG):
+            f()
+
+        with self.assertLogs(level=logging.INFO):
+            f2()
 
 
 class TestLogfParams(unittest.TestCase):

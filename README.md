@@ -79,6 +79,7 @@ Modify the behavior of `@logf()` using environment variables:
 | LOGF_LOG_EXCEPTION    | True, False          |
 | LOGF_USE_LOGGER       | 'logger_name'        |
 | LOGF_SINGLE_EXCEPTION | True, False          |
+| LOGF_LOG_LEVEL        | DEBUG, INFO, WARNING |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 

@@ -15,13 +15,8 @@ EVARS = (
     'LOGF_STACK_INFO',
     'LOGF_LOG_EXCEPTION',
     'LOGF_SINGLE_EXCEPTION',
+    'LOGF_LOG_LEVEL',
 )
-
-
-class Env:
-    def __init__(self):
-        for evar in EVARS:
-            setattr(self, evar, os.environ.get(evar))
 
 
 class Cfg:
@@ -37,6 +32,7 @@ class Cfg:
         self.log_args = kwargs.get('log_args')
         self.log_return = kwargs.get('log_return')
         self.use_logger = kwargs.get('use_logger')
+        self.logf_log_level = kwargs.get('logf_log_level')
 
         # Override attributes based on environment variables
         for ev in EVARS:
@@ -62,6 +58,8 @@ class Cfg:
                     self.log_ex = _ev.lower() == 'true'
                 elif ev == 'LOGF_SINGLE_EXCEPTION':
                     self.single_ex = _ev.lower() == 'true'
+                elif ev == 'LOGF_LOG_LEVEL':
+                    self.logf_log_level = str(_ev).upper()
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
@@ -71,7 +69,7 @@ EXIT_MSG = '{func_name}() {exec_time}s | {result}'
 SINGLE_MSG = '{func_name}() {exec_time}s | {args_str} | {result}'
 ENTER_MSG_NO_ARGS = '{func_name}()'
 
-ERROR_MSG = 'ERROR {func_name}(): {exc_type} | {exc_val}'
+ERROR_MSG = 'error in {func_name}() {exc_type}: {exc_val}'
 
 
 class MSG_FORMATS:

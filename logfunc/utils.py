@@ -17,7 +17,7 @@ from typing import (
     Iterable,
     Coroutine,
 )
-from .config import Env, EVARS
+from .config import EVARS
 from .msgs import MSG_FORMATS
 from .defaults import TRUNC_STR_LEN
 
