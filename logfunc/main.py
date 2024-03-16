@@ -158,12 +158,7 @@ def logf(
 def _handle_ex(e: Exception, func_name: str, cfg: Cfg) -> None:
     """Handles logging of exceptions raised in decorated functions."""
     e._depth = getattr(e, '_depth', 0) + 1
-    log_ex = False
-    if not cfg.single_ex:
-        log_ex = True
-    elif cfg.single_ex and e._depth <= 1:
-        log_ex = True
-    if log_ex:
+    if not cfg.single_ex or (cfg.single_ex and e._depth <= 1):
         _ex(e, func_name, cfg)
 
 
