@@ -24,6 +24,7 @@ from logfunc.main import (
     loglevel_int,
     build_argstr,
     trunc_str,
+    _handle_ex,
 )
 
 
