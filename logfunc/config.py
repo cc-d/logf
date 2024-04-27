@@ -16,6 +16,7 @@ EVARS = (
     'LOGF_LOG_EXCEPTION',
     'LOGF_SINGLE_EXCEPTION',
     'LOGF_LOG_LEVEL',
+    'LOGF_IDENTIFIER',
 )
 
 
@@ -33,6 +34,7 @@ class Cfg:
         self.log_return = kwargs.get('log_return')
         self.use_logger = kwargs.get('use_logger')
         self.logf_log_level = kwargs.get('logf_log_level')
+        self.identifier = kwargs.get('identifier')
 
         # Override attributes based on environment variables
         for ev in EVARS:
@@ -60,6 +62,8 @@ class Cfg:
                     self.single_ex = _ev.lower() == 'true'
                 elif ev == 'LOGF_LOG_LEVEL':
                     self.logf_log_level = str(_ev).upper()
+                elif ev == 'LOGF_IDENTIFIER':
+                    self.identifier = _ev.lower() == 'true'
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
