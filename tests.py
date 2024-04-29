@@ -59,7 +59,7 @@ def evar_and_param(
     def wrapper_env():
         os.environ[evar_name] = evar_value
 
-        @logf()
+        @logf(identifier=False)
         def f(*args, **kwargs):
             return ret
 
@@ -68,7 +68,7 @@ def evar_and_param(
         return f
 
     def wrapper_param():
-        @logf(**{logf_param_name: logf_param_value})
+        @logf(**{logf_param_name: logf_param_value}, identifier=False)
         def f(*args, **kwargs):
             return ret
 
@@ -84,7 +84,7 @@ class TestLogfEnvVars(unittest.TestCase):
     def test_defaults(self):
         _long = TRUNC_STR_LEN * 5
 
-        @logf()
+        @logf(identifier=False)
         def f(*args, **kwargs):
             return 'r' * _long
 
@@ -334,7 +334,7 @@ class TestLogfAsync(unittest.TestCase):
 
     @async_test
     async def test_async_function_logging(self):
-        @logf(use_print=True)
+        @logf(use_print=True, identifier=False)
         async def async_func(x, y):
             return x + y
 

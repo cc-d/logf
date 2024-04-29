@@ -44,6 +44,7 @@ def logf(
     log_stack_info: bool = False,
     log_exception: bool = True,
     single_exception: bool = True,
+    identifier: bool = True,
     **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
@@ -89,6 +90,7 @@ def logf(
         log_args=log_args,
         log_return=log_return,
         use_logger=use_logger,
+        identifier=identifier,
     )
 
     # if param use_logger is a string, convert it to a logger
@@ -168,6 +170,9 @@ def _ex(e: Exception, func_name: str, cfg: Cfg) -> None:
     logmsg = MSG_FORMATS.error.format(
         func_name=func_name, exc_type=type(e).__name__, exc_val=e
     )
+    if cfg.cur_id:
+        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
+
     if cfg.use_print:
         fe = format_exception(e, value=e, tb=e.__traceback__)
         print(''.join([logmsg] + fe).rstrip('\n'))
@@ -181,6 +186,9 @@ def _msg_enter(func_name: str, args_str: str, cfg: Cfg) -> None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
     logmsg = MSG_FORMATS.enter.format(func_name=func_name, args_str=args_str)
+    if cfg.cur_id:
+        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
+
     if cfg.use_print:
         print(logmsg)
     else:
@@ -201,6 +209,8 @@ def _msg_exit(
         args_str,
         trunc_str(result, cfg.max_str) if cfg.log_return else '',
     )
+    if cfg.cur_id:
+        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
     if cfg.use_print:
         print(logmsg)
     else:

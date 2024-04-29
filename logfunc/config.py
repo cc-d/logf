@@ -1,7 +1,15 @@
 import os
+import random as ran
+import string as s
 from typing import Optional as Opt, Union
 from logging import getLogger
 
+import random as ran
+import string as s
+
+
+ID_CHARS = s.ascii_letters + s.digits + '_-'
+ID_LEN = 6  # 68719476736 possible combinations
 
 EVARS = (
     'LOGF_USE_PRINT',
@@ -35,6 +43,10 @@ class Cfg:
         self.use_logger = kwargs.get('use_logger')
         self.logf_log_level = kwargs.get('logf_log_level')
         self.identifier = kwargs.get('identifier')
+
+        self.cur_id = (
+            ''.join(ran.choices(ID_CHARS, k=ID_LEN)) if self.identifier else ''
+        )
 
         # Override attributes based on environment variables
         for ev in EVARS:
