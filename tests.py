@@ -489,26 +489,44 @@ class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
             self.assertEqual(mock__ex.call_count, 3)
 
 
-@unittest.skipIf(
-    sys.version_info < (3, 8), "Async tests require Python 3.8 or later"
-)
-class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
-    unittest.IsolatedAsyncioTestCase
-):
-    # replace with IsolatedAsyncioTestCase on 3.5+
-    def setUp(self):
-        clear_env_vars()
-        os.environ['LOGF_SINGLE_MSG'] = 'True'
+if sys.version_info >= (3, 8):
 
-    async def test_single_exception_true(self):
+    class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
+        unittest.IsolatedAsyncioTestCase
+    ):
+        # replace with IsolatedAsyncioTestCase on 3.5+
+        def setUp(self):
+            clear_env_vars()
+            os.environ['LOGF_SINGLE_MSG'] = 'True'
 
-        with patch('logfunc.main._ex') as mock__ex:
+        async def test_single_exception_true(self):
 
-            @logf(single_exception=True, log_exception=True)
-            async def function_raises():
+            with patch('logfunc.main._ex') as mock__ex:
+
                 @logf(single_exception=True, log_exception=True)
-                async def f2():
+                async def function_raises():
                     @logf(single_exception=True, log_exception=True)
+                    async def f2():
+                        @logf(single_exception=True, log_exception=True)
+                        async def f3():
+                            raise ValueError("Error in f3")
+
+                        await f3()
+
+                    await f2()
+
+                with self.assertRaises(ValueError):
+                    await function_raises()
+
+                self.assertEqual(mock__ex.call_count, 1)
+
+        async def test_single_exception_false(self):
+
+            @logf(single_exception=False, log_exception=True)
+            async def function_raises():
+                @logf(single_exception=False, log_exception=True)
+                async def f2():
+                    @logf(single_exception=False, log_exception=True)
                     async def f3():
                         raise ValueError("Error in f3")
 
@@ -516,35 +534,18 @@ class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
 
                 await f2()
 
-            with self.assertRaises(ValueError):
-                await function_raises()
+            with patch('logfunc.main.handle_log') as mock_handle_log:
+                with self.assertRaises(ValueError):
+                    await function_raises()
 
-            self.assertEqual(mock__ex.call_count, 1)
-
-    async def test_single_exception_false(self):
-
-        @logf(single_exception=False, log_exception=True)
-        async def function_raises():
-            @logf(single_exception=False, log_exception=True)
-            async def f2():
-                @logf(single_exception=False, log_exception=True)
-                async def f3():
-                    raise ValueError("Error in f3")
-
-                await f3()
-
-            await f2()
-
-        with patch('logfunc.main.handle_log') as mock_handle_log:
-            with self.assertRaises(ValueError):
-                await function_raises()
-
-        self.assertEqual(mock_handle_log.call_count, 3)
-        # Ensure the exception message from the deepest function is logged
-        self.assertIn('Error in f3', mock_handle_log.call_args_list[0][0][0])
-        # Check that each function's name appears in the log messages
-        for i, f in enumerate(['f3', 'f2', 'function_raises']):
-            self.assertIn(f, mock_handle_log.call_args_list[i][0][0])
+            self.assertEqual(mock_handle_log.call_count, 3)
+            # Ensure the exception message from the deepest function is logged
+            self.assertIn(
+                'Error in f3', mock_handle_log.call_args_list[0][0][0]
+            )
+            # Check that each function's name appears in the log messages
+            for i, f in enumerate(['f3', 'f2', 'function_raises']):
+                self.assertIn(f, mock_handle_log.call_args_list[i][0][0])
 
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
