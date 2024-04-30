@@ -489,6 +489,9 @@ class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
             self.assertEqual(mock__ex.call_count, 3)
 
 
+@unittest.skipIf(
+    sys.version_info < (3, 8), "Async tests require Python 3.8 or later"
+)
 class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
     unittest.IsolatedAsyncioTestCase
 ):
