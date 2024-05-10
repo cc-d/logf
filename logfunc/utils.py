@@ -81,7 +81,6 @@ def handle_log(
     level: Opt[Union[int, str]] = None,
     use_logger: Opt[logging.Logger] = None,
     log_stack_info: bool = False,
-    log_exception: bool = False,
 ) -> Union[Callable, None]:
     """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
     LOGF_LEVEL, and LOGF_PRINT_ALL environment variables.
@@ -99,8 +98,6 @@ def handle_log(
     level_int = loglevel_int(level) if level is not None else logging.DEBUG
 
     logfunc = logging.log if use_logger is None else use_logger.log
-    logfunc(
-        level_int, logmsg, stack_info=log_stack_info, exc_info=log_exception
-    )
+    logfunc(level_int, logmsg, stack_info=log_stack_info)
 
     return logfunc

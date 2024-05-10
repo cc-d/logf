@@ -42,9 +42,6 @@ def logf(
     use_print: bool = False,
     use_logger: Opt[U[Logger, str]] = None,
     log_stack_info: bool = False,
-    log_exception: bool = True,
-    single_exception: bool = True,
-    identifier: bool = True,
     **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
@@ -71,9 +68,6 @@ def logf(
         log_stack_info (bool): stack_info kwarg for log
             Can be overridden by the evar LOGF_STACK_INFO.
             Defaults to False
-        log_exception (bool): Should exceptions be logged? Defaults to True.
-        single_exception (bool): Should only the last exception be logged?
-            Defaults to True.
     Returns:
         The executed decorated function or coroutine result.
     """
@@ -83,14 +77,11 @@ def logf(
         max_str_len=max_str_len,
         log_exec_time=kwargs.get('measure_time', log_exec_time),
         single_msg=single_msg,
-        log_exception=log_exception,
-        single_exception=single_exception,
         log_stack_info=log_stack_info,
         use_print=use_print,
         log_args=log_args,
         log_return=log_return,
         use_logger=use_logger,
-        identifier=identifier,
     )
 
     # if param use_logger is a string, convert it to a logger
@@ -109,14 +100,7 @@ def logf(
 
                 _start = aio.get_event_loop().time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg)
-                if cfg.log_ex:
-                    try:
-                        result = await func(*args, **kwargs)
-                    except Exception as e:
-                        _handle_ex(e, fname, cfg)
-                        raise e
-                else:
-                    result = await func(*args, **kwargs)
+                result = await func(*args, **kwargs)
 
                 _msg_exit(
                     result,
@@ -136,16 +120,7 @@ def logf(
 
                 _start = time.time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg)
-                if cfg.log_ex:
-                    try:
-
-                        result = func(*args, **kwargs)
-                    except Exception as e:
-                        _handle_ex(e, fname, cfg)
-                        raise e
-
-                else:
-                    result = func(*args, **kwargs)
+                result = func(*args, **kwargs)
 
                 _msg_exit(
                     result, fname, _endtime(_start, time.time()), argstr, cfg
@@ -157,42 +132,19 @@ def logf(
     return wrapper
 
 
-def _handle_ex(e: Exception, func_name: str, cfg: Cfg) -> None:
-    """Handles logging of exceptions raised in decorated functions."""
-    e._depth = getattr(e, '_depth', 0) + 1
-    if not cfg.single_ex or (cfg.single_ex and e._depth <= 1):
-        _ex(e, func_name, cfg)
-
-
-def _ex(e: Exception, func_name: str, cfg: Cfg) -> None:
-    """Handles logging of exceptions raised in decorated functions."""
-
-    logmsg = MSG_FORMATS.error.format(
-        func_name=func_name, exc_type=type(e).__name__, exc_val=e
-    )
-    if cfg.cur_id:
-        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
-
-    if cfg.use_print:
-        fe = format_exception(e, value=e, tb=e.__traceback__)
-        print(''.join([logmsg] + fe).rstrip('\n'))
-    else:
-        handle_log(logmsg, 'ERROR', cfg.use_logger, False, True)
-
-
 def _msg_enter(func_name: str, args_str: str, cfg: Cfg) -> None:
     """Handles logging of the enter message for decorated functions."""
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
     logmsg = MSG_FORMATS.enter.format(func_name=func_name, args_str=args_str)
-    if cfg.cur_id:
-        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
 
     if cfg.use_print:
         print(logmsg)
     else:
-        handle_log(logmsg, cfg.level, cfg.use_logger, cfg.log_stack)
+        handle_log(
+            logmsg, cfg.level, cfg.use_logger, log_stack_info=cfg.log_stack
+        )
 
 
 def _msg_exit(
@@ -209,8 +161,7 @@ def _msg_exit(
         args_str,
         trunc_str(result, cfg.max_str) if cfg.log_return else '',
     )
-    if cfg.cur_id:
-        logmsg = logmsg.replace('()', '(%s)' % cfg.cur_id, 1)
+
     if cfg.use_print:
         print(logmsg)
     else:

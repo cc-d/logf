@@ -20,11 +20,8 @@ EVARS = (
     'LOGF_LOG_RETURN',
     'LOGF_LOG_EXEC_TIME',
     'LOGF_USE_LOGGER',
-    'LOGF_STACK_INFO',
-    'LOGF_LOG_EXCEPTION',
-    'LOGF_SINGLE_EXCEPTION',
     'LOGF_LOG_LEVEL',
-    'LOGF_IDENTIFIER',
+    'LOGF_STACK_INFO',
 )
 
 
@@ -34,19 +31,12 @@ class Cfg:
         self.max_str = kwargs.get('max_str_len')
         self.log_time = kwargs.get('log_exec_time')
         self.single = kwargs.get('single_msg')
-        self.log_ex = kwargs.get('log_exception')
-        self.single_ex = kwargs.get('single_exception')
-        self.log_stack = kwargs.get('log_stack_info')
         self.use_print = kwargs.get('use_print')
         self.log_args = kwargs.get('log_args')
         self.log_return = kwargs.get('log_return')
         self.use_logger = kwargs.get('use_logger')
         self.logf_log_level = kwargs.get('logf_log_level')
-        self.identifier = kwargs.get('identifier')
-
-        self.cur_id = (
-            ''.join(ran.choices(ID_CHARS, k=ID_LEN)) if self.identifier else ''
-        )
+        self.log_stack = kwargs.get('log_stack_info')
 
         # Override attributes based on environment variables
         for ev in EVARS:
@@ -68,14 +58,10 @@ class Cfg:
                     self.use_logger = getLogger(_ev) if _ev else None
                 elif ev == 'LOGF_STACK_INFO':
                     self.log_stack = _ev.lower() == 'true'
-                elif ev == 'LOGF_LOG_EXCEPTION':
-                    self.log_ex = _ev.lower() == 'true'
                 elif ev == 'LOGF_SINGLE_EXCEPTION':
                     self.single_ex = _ev.lower() == 'true'
                 elif ev == 'LOGF_LOG_LEVEL':
                     self.logf_log_level = str(_ev).upper()
-                elif ev == 'LOGF_IDENTIFIER':
-                    self.identifier = _ev.lower() == 'true'
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
@@ -85,8 +71,6 @@ EXIT_MSG = '{func_name}() {exec_time}s | {result}'
 SINGLE_MSG = '{func_name}() {exec_time}s | {args_str} | {result}'
 ENTER_MSG_NO_ARGS = '{func_name}()'
 
-ERROR_MSG = 'error in {func_name}() {exc_type}: {exc_val}'
-
 
 class MSG_FORMATS:
     argstr = ARGSSTR
@@ -95,4 +79,3 @@ class MSG_FORMATS:
     exit = EXIT_MSG
     exit_no_return = EXIT_MSG_NO_RETURN
     single = SINGLE_MSG
-    error = ERROR_MSG

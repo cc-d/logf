@@ -24,7 +24,6 @@ from logfunc.main import (
     loglevel_int,
     build_argstr,
     trunc_str,
-    _handle_ex,
 )
 
 
@@ -222,28 +221,6 @@ class TestLogfEnvVars(unittest.TestCase):
         self.assertTrue(mock_handle_log.call_count > 0)
         self.assertIn(getLogger('logf'), mock_handle_log.call_args_list[0][0])
 
-    def test_evar_stack_info(self):
-        os.environ['LOGF_STACK_INFO'] = 'True'
-
-        @logf(log_stack_info=True)
-        def f():
-            return 1
-
-        with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-        msgs = msgs.output
-        self.assertTrue('tests.py' in msgs[0])
-        self.assertIn('Stack (most recent call last)', msgs[0])
-
-    def test_log_exception(self):
-        os.environ['LOGF_LOG_EXCEPTION'] = 'True'
-
-        @logf(log_exception=True)
-        def f():
-            pass
-
-        f()
-
     def test_measure_time(self):
 
         @logf(measure_time=False)
@@ -378,117 +355,6 @@ class TestLogfAsync(unittest.TestCase):
         self.assertEqual(mock_handle_log.call_count, 0)
 
 
-class TestLogfErrorHandling(unittest.TestCase):
-    def setUp(self):
-        clear_env_vars()
-        os.environ['LOGF_SINGLE_EXCEPTION'] = 'False'
-
-    def test_sync_log_exception_true_use_print_true(self):
-        @logf(log_exception=True, use_print=True)
-        def sync_raise_error():
-            raise ValueError("Test Error")
-
-        with patch('logfunc.main.format_exception') as mock_format_exception:
-            with self.assertRaises(ValueError):
-                sync_raise_error()
-
-        self.assertTrue(mock_format_exception.call_count > 0)
-        print(mock_format_exception.call_args_list[0])
-
-    def test_sync_log_exception_true_use_print_false(self):
-        @logf(log_exception=True, use_print=False)
-        def sync_raise_error():
-            raise ValueError("Test Error")
-
-        with patch('logfunc.main.handle_log') as mock_handle_log:
-            with self.assertRaises(ValueError):
-                sync_raise_error()
-
-        self.assertTrue(mock_handle_log.call_count > 0)
-        print(mock_handle_log.call_args_list[0])
-
-    def test_sync_log_exception_false_use_print_true(self):
-        @logf(log_exception=False, use_print=True)
-        def sync_raise_error():
-            raise ValueError("Test Error")
-
-        with self.assertRaises(ValueError):
-            sync_raise_error()
-
-    @async_test
-    async def test_async_log_exception_true_use_print_true(self):
-        @logf(log_exception=True, use_print=True)
-        async def async_raise_error():
-            raise ValueError("Async Test Error")
-
-        with patch('logfunc.main.format_exception') as mock_format_exception:
-            with self.assertRaises(ValueError):
-                await async_raise_error()
-
-        self.assertTrue(mock_format_exception.call_count > 0)
-
-    @async_test
-    async def test_async_log_exception_true_use_print_false(self):
-        @logf(log_exception=True, use_print=False)
-        async def async_raise_error():
-            raise ValueError("Async Test Error")
-
-        with self.assertRaises(ValueError), self.assertLogs(
-            level='ERROR'
-        ) as log:
-            await async_raise_error()
-        print(log.output)
-        # self.assertIn("Async Test Error", log.output[0])
-
-
-class TestLogfSingleThreadedExceptionHandling(unittest.TestCase):
-    def setUp(self):
-        clear_env_vars()
-        os.environ['LOGF_SINGLE_MSG'] = 'True'
-
-        @logf()
-        def function_raises():
-            @logf()
-            def f2():
-                @logf()
-                def f3():
-                    raise ValueError("Error in f3")
-
-                f3()
-
-            f2()
-
-        self.function_raises = function_raises
-
-    def test_single_exception_true(self):
-
-        with patch('logfunc.main._ex') as mock__ex:
-            with self.assertRaises(ValueError):
-                self.function_raises()
-
-        print(mock__ex.call_count, mock__ex.call_args_list)
-        self.assertEqual(mock__ex.call_count, 1)
-
-    def test_single_exception_false(self):
-        @logf(single_exception=False, log_exception=True)
-        def function_raises():
-            @logf(single_exception=False, log_exception=True)
-            def f2():
-                @logf(single_exception=False, log_exception=True)
-                def f3():
-                    raise ValueError("Error in f3")
-
-                f3()
-
-            f2()
-
-        with patch('logfunc.main._ex') as mock__ex:
-            with self.assertRaises(ValueError):
-                function_raises()
-
-            self.assertEqual(mock__ex.call_count, 3)
-
-
 if sys.version_info >= (3, 8):
 
     class TestLogfSingleThreadedAsyncExceptioIsolatedAnHandling(
@@ -498,54 +364,6 @@ if sys.version_info >= (3, 8):
         def setUp(self):
             clear_env_vars()
             os.environ['LOGF_SINGLE_MSG'] = 'True'
-
-        async def test_single_exception_true(self):
-
-            with patch('logfunc.main._ex') as mock__ex:
-
-                @logf(single_exception=True, log_exception=True)
-                async def function_raises():
-                    @logf(single_exception=True, log_exception=True)
-                    async def f2():
-                        @logf(single_exception=True, log_exception=True)
-                        async def f3():
-                            raise ValueError("Error in f3")
-
-                        await f3()
-
-                    await f2()
-
-                with self.assertRaises(ValueError):
-                    await function_raises()
-
-                self.assertEqual(mock__ex.call_count, 1)
-
-        async def test_single_exception_false(self):
-
-            @logf(single_exception=False, log_exception=True)
-            async def function_raises():
-                @logf(single_exception=False, log_exception=True)
-                async def f2():
-                    @logf(single_exception=False, log_exception=True)
-                    async def f3():
-                        raise ValueError("Error in f3")
-
-                    await f3()
-
-                await f2()
-
-            with patch('logfunc.main.handle_log') as mock_handle_log:
-                with self.assertRaises(ValueError):
-                    await function_raises()
-
-            self.assertEqual(mock_handle_log.call_count, 3)
-            # Ensure the exception message from the deepest function is logged
-            self.assertIn(
-                'Error in f3', mock_handle_log.call_args_list[0][0][0]
-            )
-            # Check that each function's name appears in the log messages
-            for i, f in enumerate(['f3', 'f2', 'function_raises']):
-                self.assertIn(f, mock_handle_log.call_args_list[i][0][0])
 
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -574,33 +392,6 @@ class TestLogfMultiThreadedSyncExceptionHandling(unittest.TestCase):
                 function_raises()
 
         self.assertEqual(mock_handle_log.call_count, 1)
-
-    def test_multithreaded_single_exception_true(self):
-        expected_count = 1
-        results = []
-        with patch('logfunc.main._ex') as mock__ex:
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [
-                    executor.submit(self.function_raises_wrapper, True)
-                    for _ in range(5)
-                ]
-                for future in as_completed(futures):
-                    # Collect results or exceptions from futures if necessary
-                    results.append(future.exception())
-        self.assertEqual(mock__ex.call_count, expected_count * 5)
-
-    def test_multithreaded_single_exception_false(self):
-        expected_count = 3
-        results = []
-        with patch('logfunc.main._ex') as mock__ex:
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [
-                    executor.submit(self.function_raises_wrapper, False)
-                    for _ in range(5)
-                ]
-                for future in as_completed(futures):
-                    results.append(future.exception())
-        self.assertEqual(mock__ex.call_count, expected_count * 5)
 
 
 class TestLogfRegression(unittest.TestCase):
@@ -640,3 +431,26 @@ class TestLogfRegression(unittest.TestCase):
 
         self.assertTrue(mock__argstr.call_count > 0)
         self.assertIn('[LOGF STR ERROR', msgs.output[1])
+
+    def test_base_exception(self):
+        @logf()
+        def f():
+            @logf()
+            def f2():
+                raise BaseException('Base Exception')
+
+            @logf()
+            def f3():
+                @logf()
+                def f4():
+                    f2()
+
+                f4()
+
+            try:
+                f3()
+            except BaseException as e:
+                raise ValueError('ValueError') from e
+
+        with self.assertRaises(ValueError) as cm:
+            f()

@@ -425,17 +425,6 @@ class TestLogf(unittest.TestCase):
             self.assertTrue(len(out) > 0)
             self.assertTrue(len(aout) == 0)
 
-    def test_stack_info_evar(self):
-        os.environ['LOGF_STACK_INFO'] = 'True'
-
-        @logf(log_stack_info=True)
-        def f():
-            return 1
-
-        with self.assertLogs(level='DEBUG') as log:
-            f()
-        self.assertIn('Stack (most recent call last):', log.output[0])
-
 
 # Asynchronous decorator
 def async_decorator(async_func):

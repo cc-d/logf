@@ -90,4 +90,34 @@ def errs():
         pass
 
 
-# errs()
+@logf()
+def f1(a):
+
+    @logf()
+    def f2(a):
+        @logf()
+        def f3(a):
+            @logf()
+            def f4(a):
+                if a == 4:
+                    raise ValueError("a is 4")
+                return a
+
+            try:
+                f4(a)
+            except:
+                raise BaseException("f4 error")
+
+        @logf()
+        def f5(a):
+            raise Exception("Test exception")
+
+        try:
+            f3(a)
+        except Exception as e:
+            f5(a)
+
+    f2(a)
+
+
+f1('hi')
