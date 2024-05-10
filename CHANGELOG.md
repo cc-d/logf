@@ -1,3 +1,11 @@
+## 2.5.1
+
+moved from setup.py -> pyproject.toml
+
+added version + set version script
+
+fixed 3.5 python test.py support
+
 ## 2.5
 
 added changelog

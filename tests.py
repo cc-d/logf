@@ -244,8 +244,9 @@ class TestLogfEnvVars(unittest.TestCase):
         def f2():
             return 1
 
-        with self.assertNoLogs(level=logging.DEBUG):
-            f()
+        if sys.version_info >= (3, 6):
+            with self.assertNoLogs(level=logging.DEBUG):
+                f()
 
         with self.assertLogs(level=logging.INFO):
             f2()

@@ -146,7 +146,6 @@ def _msg_enter(func_name: str, args_str: str, cfg: Cfg) -> None:
             logmsg, cfg.level, cfg.use_logger, log_stack_info=cfg.log_stack
         )
 
-
 def _msg_exit(
     result: Any, func_name: str, end_time: str, args_str: str, cfg: Cfg
 ) -> None:
