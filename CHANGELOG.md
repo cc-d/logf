@@ -1,3 +1,13 @@
+## 2.6.0
+
+added identifier plus LOGF_IDENTIFIER env var
+
+updated README
+
+added <- and -> to enter/exit log messages
+
+test coverage back to 100%
+
 ## 2.5.1
 
 moved from setup.py -> pyproject.toml

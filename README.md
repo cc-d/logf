@@ -57,6 +57,7 @@ This setup ensures automatic logging of function name, parameters, return values
 - `use_print`: Choose to `print()` log messages instead of using standard logging.
 - `log_stack_info`: Pass `stack_info=$x` to `.log()` but not print
 - `use_logger`: Pass a logger name or logger object to use instead of logging.log
+- `identifier`: Add a unique identifier to enter/exit log messages.
 
 **print_all** used to be an env var, now just unset LOGF_LEVEL and set USE_PRINT=True for the same effect.
 
@@ -76,6 +77,7 @@ Modify the behavior of `@logf()` using environment variables:
 | LOGF_LOG_RETURN    | True, False          |
 | LOGF_USE_LOGGER    | 'logger_name'        |
 | LOGF_LOG_LEVEL     | DEBUG, INFO, WARNING |
+| LOGF_IDENTIFIER    | True, False          |
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
@@ -148,15 +150,18 @@ Output should look like this:
 ---------- coverage: platform darwin, python 3.11.5-final-0 ----------
 Name                  Stmts   Miss  Cover   Missing
 ---------------------------------------------------
-logfunc/__init__.py       1      0   100%
-logfunc/config.py        22      0   100%
-logfunc/defaults.py       1      0   100%
-logfunc/main.py         107      0   100%
-logfunc/utils.py         28      0   100%
-tests.py                282      0   100%
+logfunc/__init__.py       2      0   100%
+logfunc/config.py        59      0   100%
+logfunc/defaults.py       2      0   100%
+logfunc/main.py          69      0   100%
+logfunc/msgs.py           8      0   100%
+logfunc/utils.py         35      0   100%
+logfunc/version.py        1      0   100%
 ---------------------------------------------------
-TOTAL                   441      0   100%
+TOTAL                   176      0   100%
 
+
+==================================== 25 passed in 0.06s
 ```
 
 You can also just run the `tests.py` file directly.

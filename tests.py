@@ -21,10 +21,21 @@ from logfunc.main import (
     TRUNC_STR_LEN,
     handle_log,
     logf,
+    Cfg,
     loglevel_int,
     build_argstr,
     trunc_str,
+    EXEC_TIME_FMT,
 )
+
+
+def _find_id(msg: str, expected: bool = True) -> str:
+    """if expected, asserts id in msg, else assert not in msg"""
+    id = re.findall(r'\(\)\[([a-zA-Z0-9-_]*)\]', msg)
+    if expected:
+        assert len(id) == 1
+        return id[0]
+    assert len(id) == 0
 
 
 def clear_env_vars():
@@ -83,7 +94,7 @@ class TestLogfEnvVars(unittest.TestCase):
     def test_defaults(self):
         _long = TRUNC_STR_LEN * 5
 
-        @logf(identifier=False)
+        @logf()
         def f(*args, **kwargs):
             return 'r' * _long
 
@@ -93,11 +104,19 @@ class TestLogfEnvVars(unittest.TestCase):
         msgs = msgs.output
 
         self.assertTrue(len(msgs) == 2)
-        self.assertIn('f()', msgs[0])
-        self.assertIn('f()', msgs[1])
-        self.assertIn(str((1, 2)), msgs[0])
-        self.assertIn('0.', msgs[1])
-        self.assertTrue(len(msgs[1]) < TRUNC_STR_LEN * 2)
+
+        # enter/exit
+        for i, m in enumerate(msgs[0:2]):
+
+            _find_id(m)
+
+            if i == 0:
+                self.assertIn('-> f()', m)
+                self.assertIn(str((1, 2)), m)
+            else:
+                self.assertIn('<- f()', m)
+                self.assertIn('0.', m)
+                self.assertTrue(len(m) < TRUNC_STR_LEN * 2)
 
     def test_evar_use_print(self):
         ef, pf = evar_and_param('LOGF_USE_PRINT', 'True', 'use_print', True)
@@ -133,7 +152,9 @@ class TestLogfEnvVars(unittest.TestCase):
 
             self.assertTrue(len(msgs) == 1)
             self.assertTrue(msgs[0].endswith('1'))
-            self.assertIn('f() 0.', msgs[0])
+            self.assertNotIn('->', msgs[0])
+            self.assertNotIn('<-', msgs[0])
+            self.assertEqual(msgs[0][-1], '1')
 
     def test_evar_max_str_len(self):
         ef, pf = evar_and_param(
@@ -251,6 +272,30 @@ class TestLogfEnvVars(unittest.TestCase):
         with self.assertLogs(level=logging.INFO):
             f2()
 
+    def test_identifier_evar(self):
+
+        os.environ['LOGF_IDENTIFIER'] = 'False'
+
+        @logf(identifier=True)
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            f()
+        msgs = '\n'.join(msgs.output)
+        self.assertEqual(re.findall(r'\(\)\[([a-zA-Z0-9-_]*)\]', msgs), [])
+
+        del os.environ['LOGF_IDENTIFIER']
+
+        @logf(identifier=True)
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            f()
+        msgs = '\n'.join(msgs.output)
+        self.assertEqual(len(re.findall(r'\(\)\[([a-zA-Z0-9-_]*)\]', msgs)), 2)
+
 
 class TestLogfParams(unittest.TestCase):
     def setUp(self):
@@ -290,6 +335,41 @@ class TestLogfParams(unittest.TestCase):
                 f()
 
         self.assertTrue(mock_handle_log.call_count == 0)
+
+    def test_single_msg_identifier(self):
+        @logf(single_msg=True)
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            f()
+
+        msgs = msgs.output
+        self.assertTrue(len(msgs) == 1)
+        msg = msgs[0]
+        self.assertTrue(msg.endswith('1'))
+        self.assertNotIn('->', msgs[0])
+        self.assertNotIn('<-', msgs[0])
+        self.assertEqual(re.findall(r'\(\)\[([a-zA-Z0-9-_]*)\]', msg), [])
+
+    def test_stack_info(self):
+        @logf(log_stack_info=True)
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            f()
+
+        msgs = msgs.output
+        self.assertTrue(len(msgs) == 2)
+        self.assertIn('logfunc/main.py', msgs[0])
+        self.assertIn('logfunc/main.py', msgs[1])
+
+    def test_log_stack(self):
+        """for 100% coverage"""
+        os.environ['LOGF_STACK_INFO'] = 'True'
+        c = Cfg(log_stack_info=False)
+        self.assertTrue(c.log_stack)
 
 
 # Helper function to run async functions in tests

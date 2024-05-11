@@ -1,23 +1,9 @@
 import asyncio
 import logging
-import os
-import re
-import sys
-import time
-import traceback
+from random import choice
 import inspect as _insp
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Optional as Opt,
-    Tuple,
-    TypeVar,
-    Union,
-    Iterable,
-    Coroutine,
-)
-from .config import EVARS
+from typing import Any, Callable, Dict, Optional as Opt, Tuple, Union
+from .config import EVARS, ID_CHARS, ID_LEN
 from .msgs import MSG_FORMATS
 from .defaults import TRUNC_STR_LEN
 
@@ -101,3 +87,13 @@ def handle_log(
     logfunc(level_int, logmsg, stack_info=log_stack_info)
 
     return logfunc
+
+
+def identifier(len=ID_LEN, chars=ID_CHARS) -> str:
+    """Generates a random identifier string of a specified length.
+    ~len: the length of the identifier
+    ~chars: the characters to choose from
+    -> str: the msg with the identifier inserted
+    """
+
+    return ''.join(choice(chars) for _ in range(len))

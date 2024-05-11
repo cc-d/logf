@@ -1,1 +1,2 @@
 TRUNC_STR_LEN = 1600
+EXEC_TIME_FMT = '%.4f'

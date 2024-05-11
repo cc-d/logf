@@ -22,6 +22,7 @@ EVARS = (
     'LOGF_USE_LOGGER',
     'LOGF_LOG_LEVEL',
     'LOGF_STACK_INFO',
+    'LOGF_IDENTIFIER',
 )
 
 
@@ -37,6 +38,7 @@ class Cfg:
         self.use_logger = kwargs.get('use_logger')
         self.logf_log_level = kwargs.get('logf_log_level')
         self.log_stack = kwargs.get('log_stack_info')
+        self.identifier = kwargs.get('identifier')
 
         # Override attributes based on environment variables
         for ev in EVARS:
@@ -58,17 +60,17 @@ class Cfg:
                     self.use_logger = getLogger(_ev) if _ev else None
                 elif ev == 'LOGF_STACK_INFO':
                     self.log_stack = _ev.lower() == 'true'
-                elif ev == 'LOGF_SINGLE_EXCEPTION':
-                    self.single_ex = _ev.lower() == 'true'
                 elif ev == 'LOGF_LOG_LEVEL':
                     self.logf_log_level = str(_ev).upper()
+                elif ev == 'LOGF_IDENTIFIER':
+                    self.identifier = _ev.lower() == 'true'
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
-ENTER_MSG = '{func_name}() | {args_str}'
-EXIT_MSG_NO_RETURN = '{func_name}() {exec_time}s'
-EXIT_MSG = '{func_name}() {exec_time}s | {result}'
-SINGLE_MSG = '{func_name}() {exec_time}s | {args_str} | {result}'
+ENTER_MSG = '-> {func_name}() | {args_str}'
+EXIT_MSG_NO_RETURN = '{func_name}() {exec_time}'
+EXIT_MSG = '<- {func_name}() {exec_time} | {result}'
+SINGLE_MSG = '{func_name}() {exec_time} | {args_str} | {result}'
 ENTER_MSG_NO_ARGS = '{func_name}()'
 
 
