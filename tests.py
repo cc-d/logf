@@ -513,25 +513,22 @@ class TestLogfRegression(unittest.TestCase):
         self.assertTrue(mock__argstr.call_count > 0)
         self.assertIn('[LOGF STR ERROR', msgs.output[1])
 
-    def test_base_exception(self):
-        @logf()
+    def test_unique_ids(self):
+        @logf(identifier=True)
         def f():
-            @logf()
-            def f2():
-                raise BaseException('Base Exception')
+            return 1
 
-            @logf()
-            def f3():
-                @logf()
-                def f4():
-                    f2()
-
-                f4()
-
-            try:
-                f3()
-            except BaseException as e:
-                raise ValueError('ValueError') from e
-
-        with self.assertRaises(ValueError) as cm:
+        with self.assertLogs(level=logging.DEBUG) as msgs:
             f()
+
+        msgs = msgs.output
+        id1 = _find_id(msgs[0])
+        id2 = _find_id(msgs[1])
+        self.assertEqual(id1, id2)
+
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            f()
+
+        msgs = msgs.output
+        id1 = _find_id(msgs[0])
+        self.assertNotEqual(id1, id2)

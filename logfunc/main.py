@@ -102,14 +102,13 @@ def logf(
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         fname = func.__name__
 
-        _id = _get_id() if cfg.identifier and not cfg.single else None
-
         # ensure only last traceback is logged
 
         if _insp.iscoroutinefunction(func):
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:
+                _id = _get_id() if cfg.identifier and not cfg.single else None
 
                 _start = aio.get_event_loop().time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg, _id)
@@ -131,7 +130,7 @@ def logf(
 
             @wraps(func)
             def decorator(*args, **kwargs) -> Any:
-
+                _id = _get_id() if cfg.identifier and not cfg.single else None
                 _start = time.time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg, _id)
                 result = func(*args, **kwargs)
@@ -207,7 +206,9 @@ def _msg_exit(
 def _endtime(start_time: U[float, None], end_time: U[float, None]) -> str:
     """Returns the time elapsed since the start time."""
     return (
-        '' if start_time is None else EXEC_TIME_FMT % (end_time - start_time)
+        ''
+        if start_time is None
+        else (EXEC_TIME_FMT % (end_time - start_time)) + 's'
     )
 
 

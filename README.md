@@ -81,38 +81,36 @@ Modify the behavior of `@logf()` using environment variables:
 
 See the following output for an example of how an env var will affect `@logf()` behaviour:
 
-Without `LOGF_USE_PRINT`:
+With `LOGF_USE_PRINT=True`:
 
 ```
-mym2@Carys-MacBook-Pro liberfy-cli % ./cli user me
-Namespace(cmd='user', act='me')
-email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+mym2@Carys-MacBook-Pro logf % gitpoll ~/test
+Running once...
+-> __init__()[CwKVbK] | (<CmdExec >, 'git rev-parse --abbrev-ref HEAD') {}
+<- __init__()[CwKVbK] 0.0048s | None
+-> __init__()[BIimGf] | (<CmdExec >, 'git config --get branch.test.remote') {}
+<- __init__()[BIimGf] 0.0040s | None
+-> __init__()[ED1XW0] | (<CmdExec >, 'git config --get branch.test.merge') {}
+<- __init__()[ED1XW0] 0.0039s | None
+-> __init__()[dsPXjJ] | (<CmdExec >, 'git rev-parse refs/remotes//') {}
+<- __init__()[dsPXjJ] 0.0044s | None
+-> __init__()[5rkgc9] | (<CmdExec >, 'git rev-parse HEAD') {}
+<- __init__()[5rkgc9] 0.0037s | None
+-> __init__()[GDti62] | (<CmdExec >, 'git fetch') {}
+<- __init__()[GDti62] 1.1160s | None
 ```
 
-With `LOGF_USE_PRINT=True`: (jwt here isnt sensitive so no worries)
+With `LOGF_SINGLE_MSG=True`:
 
 ```
-mym2@Carys-MacBook-Pro liberfy-cli % LOGF_USE_PRINT=True ./cli user me
-async_main | () {}
-setup_argparse | () {}
-setup_argparse() 0.00144s | ArgumentParser(prog='main.py', usage=None, description='CLI for user, project, sync directory, and directory file management.', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
-apicmd | (ArgumentParser(prog='main.py', usage=None, description='CLI for user, project, sync directory, and directory file management.', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True),) {}
-Namespace(cmd='user', act='me')
-me | () {}
-get | ('/u/me',) {}
-_method | ('get', '/u/me') {}
-_inject_auth | ({},) {}
-load_token | () {}
-load_token() 0.00004s | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTQ1NTQ1MjAsInN1YiI6ImFAYS5hIiwiaWF0IjoxNjk0NTQ3MzIwfQ.p6NPOEAedaV6SzBkv3XYWTGmZ4sdAEshk76wacV6Jlw
-_inject_auth() 0.00005s | {'headers': {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTQ1NTQ1MjAsInN1YiI6ImFAYS5hIiwiaWF0IjoxNjk0NTQ3MzIwfQ.p6NPOEAedaV6SzBkv3XYWTGmZ4sdAEshk76wacV6Jlw'}}
-resp_exceptions | (<Response [200 OK]>,) {}
-resp_exceptions() 0.00002s | None
-_method() 0.01756s | {'email': 'a@a.a', 'id': 'a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'}
-get() 0.01757s | {'email': 'a@a.a', 'id': 'a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'}
-me() 0.01760s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
-apicmd() 0.01773s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
-email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
-async_main() 0.01922s | email='a@a.a' id='a4c3f7ac-4649-4e74-ad07-1cd8e9626bbc'
+mym2@Carys-MacBook-Pro logf % gitpoll ~/test
+Running once...
+__init__() 0.0050s | (<CmdExec >, 'git rev-parse --abbrev-ref HEAD') {} | None
+__init__() 0.0041s | (<CmdExec >, 'git config --get branch.test.remote') {} | None
+__init__() 0.0041s | (<CmdExec >, 'git config --get branch.test.merge') {} | None
+__init__() 0.0041s | (<CmdExec >, 'git rev-parse refs/remotes//') {} | None
+__init__() 0.0038s | (<CmdExec >, 'git rev-parse HEAD') {} | None
+__init__() 1.0993s | (<CmdExec >, 'git fetch') {} | None
 ```
 
 ### Real-world Examples
