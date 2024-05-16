@@ -531,3 +531,13 @@ class TestLogfRegression(unittest.TestCase):
         msgs = msgs.output
         id1 = _find_id(msgs[0])
         self.assertNotEqual(id1, id2)
+
+    def test_unique_ids_false(self):
+        @logf(identifier=False)
+        def f():
+            return 1
+
+        with patch('logfunc.main._get_id', lambda x: '__TEST__'):
+            with self.assertLogs(level=logging.DEBUG) as msgs:
+                f()
+        self.assertNotIn('__TEST__', ' '.join(msgs.output))
