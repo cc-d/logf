@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=40.6.0", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "logfunc"
-version = '2.6.0'
+version = '2.6.1'
 description = "An EASY TO USE function decorator for advanced logging of function execution, including arguments, return values, and execution time."
 authors = [{name = "Cary Carter", email = "ccarterdev@gmail.com"}]
 license = {file = "LICENSE"}

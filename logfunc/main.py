@@ -161,7 +161,6 @@ def _msg_enter(
     logmsg = MSG_FORMATS.enter.format(func_name=func_name, args_str=args_str)
 
     if id is not None:
-
         logmsg = logmsg.replace('()', '()[%s]' % id, 1)
 
     if cfg.use_print:
@@ -192,6 +191,7 @@ def _msg_exit(
         args_str,
         trunc_str(result, cfg.max_str) if cfg.log_return else '',
     )
+
     if id is not None:
         logmsg = logmsg.replace('()', '()[%s]' % id, 1)
 
