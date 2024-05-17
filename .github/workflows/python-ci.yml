@@ -72,7 +72,8 @@ jobs:
         run: |
           git checkout gh-pages || git checkout --orphan gh-pages
           git reset --hard
-          cp report.html .
+          if [ -f report.html ]; then rm -f report.html; fi
+          cp $GITHUB_WORKSPACE/report.html report.html
           git add report.html
           git commit -m "Update coverage report"
           git push origin gh-pages --force
