@@ -1,3 +1,7 @@
+## 2.6.2
+
+Fixed incorrect metadata resulting from setup.py being used in build rathrer than pyproject.toml
+
 ## 2.6.0
 
 added identifier plus LOGF_IDENTIFIER env var
