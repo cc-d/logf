@@ -1,0 +1,6 @@
+[run]
+omit = */.vscode/*
+
+
+[report]
+show_missing = True
