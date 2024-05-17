@@ -40,7 +40,8 @@ jobs:
       - name: Run tests and generate reports
         run: |
           pytest --cov=logfunc --cov-report=xml --html=report.html \
-            --cov-report=term:skip-covered --cov-fail-under=90 -vv
+            --cov-report=term-missing --cov-fail-under=90 -vv \
+            -s tests.py
 
       - name: Setup Git
         run: |
