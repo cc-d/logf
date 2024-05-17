@@ -11,10 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        image: ['python:3.5.10-slim', 'python:3.6.13-slim']
         python-version:
           [
-            'python:3.5.10-slim',
-            'python:3.6.13-slim',
             '3.7.17',
             '3.8.18',
             '3.9.19',
