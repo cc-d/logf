@@ -51,6 +51,7 @@ jobs:
           path: coverage.xml
 
       - name: Upload coverage report to GitHub Pages
+        uses: actions/checkout@v2
         run: |
           apt-get update && apt-get install -y git
           git config --global user.name 'GitHub Actions'
