@@ -27,43 +27,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install git
-        run: apt-get update -y && apt-get install -y git
-
-      - name: Install dependencies
+      - name: Setup environment
         run: |
+          apt-get update -y && apt-get install -y git
           python -m pip install --upgrade pip
           pip install -r requirements_dev.txt
-          pip install pytest pytest-cov pytest-html
 
-      - name: Run pytest with coverage
+      - name: Run tests and generate reports
         run: |
-          pytest --cov=logfunc --cov-report=xml --cov-report=html --html=report.html \
-            --cov-fail-under=90 --cov-report=term-missing -svv -p no:warnings \
-            tests.py
+          pytest --cov=logfunc --cov-report=xml --html=report.html \
+            --cov-report=term-missing --cov-fail-under=90 -vv \
+            -s tests.py
 
-      - name: Upload HTML report as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: Test report
-          path: report.html
-
-      - name: Upload XML report as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: Test report
-          path: coverage.xml
-
-      - name: Setup Git Config for GitHub Pages
+      - name: Publish coverage report to GitHub Pages
         run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git fetch origin gh-pages:gh-pages # Fetch and update local reference of gh-pages
-
-      - name: Upload coverage report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # Specify the directory where your report files are generated
-          publish_branch: gh-pages # Specify the branch you want to publish to
-          keep_files: true # Set to true to retain files not overwritten by new deployment
+          git fetch
+          git checkout -b gh-pages
+          git add report.html
+          git commit -m "Update coverage report"
+          git push origin gh-pages --force
+        env:
+          GIT_COMMITTER_NAME: GitHub Actions
+          GIT_COMMITTER_EMAIL: actions@github.com
+          GIT_AUTHOR_NAME: GitHub Actions
+          GIT_AUTHOR_EMAIL: actions@github.com
