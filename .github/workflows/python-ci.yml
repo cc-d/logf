@@ -9,17 +9,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        python-version:
-          - '3.5.10'
-          - '3.6.13'
-          - '3.7.17'
-          - '3.8.18'
-          - '3.9.19'
-          - '3.10.14'
-          - '3.11.9'
-          - '3.12.3'
+        image:
+          - 'python:3.5.10-slim'
+          - 'python:3.6.13-slim'
+          - 'python:3.7.17-slim'
+          - 'python:3.8.18-slim'
+          - 'python:3.9.19-slim'
+          - 'python:3.10.14-slim'
+          - 'python:3.11.9-slim'
+          - 'python:3.12.3-slim'
+
+    container:
+      image: ${{ matrix.image }}
 
     steps:
       - uses: actions/checkout@v2
