@@ -264,9 +264,19 @@ class TestLogfEnvVars(unittest.TestCase):
         def f2():
             return 1
 
-        if sys.version_info >= (3, 6):
+        if sys.version_info.micro >= 8:
+            print('Testing for Python 3.8+')
             with self.assertNoLogs(level=logging.DEBUG):
                 f()
+        else:
+            _err = False
+            try:
+                with self.assertLogs(level=logging.DEBUG):
+                    f()
+            except AssertionError:
+                _err = True
+
+            self.assertTrue(_err)
 
         with self.assertLogs(level=logging.INFO):
             f2()
