@@ -52,6 +52,7 @@ jobs:
             -s tests.py
 
       - name: Upload reports as artifacts
+        if: matrix.image == 'python:3.11.9-slim'
         uses: actions/upload-artifact@v2
         with:
           name: Reports
