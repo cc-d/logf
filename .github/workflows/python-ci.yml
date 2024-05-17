@@ -1,7 +1,5 @@
 name: Python CI
 
-templates:
-
 on:
   push:
     branches: [main]
