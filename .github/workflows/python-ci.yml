@@ -35,15 +35,16 @@ jobs:
 
       - name: Run pytest with coverage
         run: |
-          pytest --cov=./ --cov-report=xml --html=report.html tests.py
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: coverage.xml
+          pytest --cov=logfunc --cov-report=xml --cov-report=html --html=report.html \
+            --cov-fail-under=90 --cov-report=term-missing
 
       - name: Upload HTML report as artifact
         uses: actions/upload-artifact@v2
         with:
           name: Test report
           path: report.html
+      - name: Upload XML report as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Test report
+          path: coverage.xml
