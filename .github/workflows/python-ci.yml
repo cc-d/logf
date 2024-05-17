@@ -65,6 +65,7 @@ jobs:
 
       - name: Checkout gh-pages
         run: |
+          git fetch
           git status
           git checkout gh-pages
           git pull origin gh-pages
