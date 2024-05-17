@@ -58,22 +58,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: Reports
-
       - name: Configure git
         run: |
           git config user.name 'GitHub Actions'
           git config user.email 'actions@github.com'
 
-      - name: Publish coverage report to GitHub Pages
+      - name: Checkout gh-pages
         run: |
-          git checkout gh-pages || git checkout --orphan gh-pages
-          git reset --hard
-          if [ -f report.html ]; then rm -f report.html; fi
-          cp $GITHUB_WORKSPACE/report.html report.html
-          git add report.html
-          git commit -m "Update coverage report"
-          git push origin gh-pages --force
+          git status
+          git checkout gh-pages
+          git pull origin gh-pages
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Reports
+
+      - name: Add And Push
+        run: |
+          git status
+          git add .
+          git commit -m "Add reports"
+          git push origin gh-pages
