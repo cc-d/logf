@@ -57,6 +57,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
+          git fetch origin gh-pages:gh-pages # Fetch and update local reference of gh-pages
 
       - name: Upload coverage report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -65,3 +66,4 @@ jobs:
           publish_dir: ./ # Specify the directory where your report files are generated
           publish_branch: gh-pages # Specify the branch you want to publish to
           keep_files: true # Set to true to retain files not overwritten by new deployment
+          force_orphan: true # Optional: Use this if you want to start a fresh history
