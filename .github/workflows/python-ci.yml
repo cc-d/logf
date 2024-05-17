@@ -27,6 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install git
+        run: apt-get update -y && apt-get install -y git
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -49,6 +52,11 @@ jobs:
         with:
           name: Test report
           path: coverage.xml
+
+      - name: Setup Git Config for GitHub Pages
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
 
       - name: Upload coverage report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
