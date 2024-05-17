@@ -27,6 +27,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Pre 3.7 Python
+        if: contains(matrix.image, '3.5') || contains(matrix.image, '3.6')
+          run: |
+            apt-get update && apt-get install -y python3-pip
+            python3 -m pip install --upgrade pip
+            python3 -m pip install -r requirements_dev.txt
+        else:
+          run: echo "Python 3.7+"
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
