@@ -1,5 +1,7 @@
 name: Python CI
 
+templates:
+
 on:
   push:
     branches: [main]
@@ -26,28 +28,33 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0' # Fetches all history for all tags and branches
 
       - name: Setup environment
         run: |
           apt-get update -y && apt-get install -y git
           python -m pip install --upgrade pip
-          pip install -r requirements_dev.txt
+          pip install -r requirements_dev.txt pytest pytest-cov pytest-html
 
       - name: Run tests and generate reports
         run: |
           pytest --cov=logfunc --cov-report=xml --html=report.html \
-            --cov-report=term-missing --cov-fail-under=90 -vv \
-            -s tests.py
+            --cov-report=term:skip-covered --cov-fail-under=90 -vv
+
+      - name: Setup Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+      - name: Check git status
+        run: git status # To verify git repo context and debug
 
       - name: Publish coverage report to GitHub Pages
         run: |
-          git fetch
-          git checkout -b gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+          cp report.html .
           git add report.html
           git commit -m "Update coverage report"
           git push origin gh-pages --force
-        env:
-          GIT_COMMITTER_NAME: GitHub Actions
-          GIT_COMMITTER_EMAIL: actions@github.com
-          GIT_AUTHOR_NAME: GitHub Actions
-          GIT_AUTHOR_EMAIL: actions@github.com
