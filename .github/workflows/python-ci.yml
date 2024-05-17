@@ -1,11 +1,3 @@
-name: Python CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,6 +33,7 @@ jobs:
           pytest --cov=logfunc --cov-report=xml --cov-report=html --html=report.html \
             --cov-fail-under=90 --cov-report=term-missing -svv -p no:warnings \
             tests.py
+
       - name: Upload HTML report as artifact
         uses: actions/upload-artifact@v2
         with:
@@ -66,4 +59,3 @@ jobs:
           publish_dir: ./ # Specify the directory where your report files are generated
           publish_branch: gh-pages # Specify the branch you want to publish to
           keep_files: true # Set to true to retain files not overwritten by new deployment
-          force_orphan: true # Optional: Use this if you want to start a fresh history
