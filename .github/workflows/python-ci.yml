@@ -11,29 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image:
-          - 'python:3.5.10-slim'
-          - 'python:3.6.13-slim'
-          - 'python:3.7.17-slim'
-          - 'python:3.8.18-slim'
-          - 'python:3.9.19-slim'
-          - 'python:3.10.14-slim'
-          - 'python:3.11.9-slim'
-          - 'python:3.12.3-slim'
-
-    container:
-      image: ${{ matrix.image }}
+        python-version:
+          - '3.5.10'
+          - '3.6.13'
+          - '3.7.17'
+          - '3.8.18'
+          - '3.9.19'
+          - '3.10.14'
+          - '3.11.9'
+          - '3.12.3'
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: '0' # Fetches all history for all tags and branches
 
-      - name: Setup environment
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
         run: |
-          apt-get update -y && apt-get install -y git
           python -m pip install --upgrade pip
-          pip install -r requirements_dev.txt
+          pip install -r requirements_dev.txt pytest pytest-cov pytest-html
 
       - name: Run tests and generate reports
         run: |
@@ -41,13 +40,29 @@ jobs:
             --cov-report=term-missing --cov-fail-under=90 -vv \
             -s tests.py
 
-      - name: Setup Git
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
+      - name: Upload reports as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Reports
+          path: |
+            report.html
+            coverage.xml
 
-      - name: Check git status
-        run: git status # To verify git repo context and debug
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Reports
+
+      - name: Configure git
+        run: |
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
 
       - name: Publish coverage report to GitHub Pages
         run: |
