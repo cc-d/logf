@@ -52,16 +52,3 @@ jobs:
         with:
           name: Test report
           path: coverage.xml
-
-      - name: Setup Git Config for GitHub Pages
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-
-      - name: Upload coverage report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # Specify the directory where your report files are generated
-          publish_branch: gh-pages # Specify the branch you want to publish to
-          keep_files: true # Set to true to retain files not overwritten by new deployment
