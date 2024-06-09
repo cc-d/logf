@@ -1,3 +1,7 @@
+## 2.7.1
+
+removed usage of fstrings causing 3.5 tests to fail (showing why those are useful!!!!)
+
 ## 2.7.0
 
 improved configuration object env var evaluation and defaults

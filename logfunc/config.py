@@ -61,11 +61,11 @@ class Cfg:
 
     def __repr__(self):  # pragma: no cover
         attrs = ', '.join(
-            f'{k}={v}'
+            '%s=%r' % (k, v)
             for k, v in self.__dict__.items()
             if not k.startswith('_')
         )
-        return f'<Cfg {attrs}>'
+        return '<Cfg %s>' % attrs
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
