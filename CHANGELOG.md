@@ -1,3 +1,13 @@
+## 2.7.0
+
+improved configuration object env var evaluation and defaults
+
+changed all but the single msg format to not have |
+
+added expected attr names, defaults, etc to cfg object
+
+added more tests to ensure evar defaults and evaluation work correctly
+
 ## 2.6.2
 
 Fixed incorrect metadata resulting from setup.py being used in build rathrer than pyproject.toml

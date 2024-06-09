@@ -34,21 +34,23 @@ from .utils import (
 from .config import EVARS, MSG_FORMATS, Cfg
 
 from .defaults import TRUNC_STR_LEN, EXEC_TIME_FMT
+from . import defaults as _def
+
 
 from . import msgs
 
 
 def logf(
-    level: Opt[U[int, str]] = None,
-    log_args: bool = True,
-    log_return: bool = True,
-    max_str_len: U[int, None] = TRUNC_STR_LEN,
-    log_exec_time: bool = True,
-    single_msg: bool = False,
-    use_print: bool = False,
-    use_logger: Opt[U[Logger, str]] = None,
-    log_stack_info: bool = False,
-    identifier: bool = True,
+    level: Opt[U[int, str]] = _def.LEVEL,
+    log_args: bool = _def.LOG_ARGS,
+    log_return: bool = _def.LOG_RETURN,
+    max_str_len: U[int, None] = _def.MAX_STR_LEN,
+    log_exec_time: bool = _def.LOG_EXEC_TIME,
+    single_msg: bool = _def.SINGLE_MSG,
+    use_print: bool = _def.USE_PRINT,
+    use_logger: Opt[U[Logger, str]] = _def.USE_LOGGER,
+    log_stack_info: bool = _def.LOG_STACK_INFO,
+    identifier: bool = _def.IDENTIFIER,
     **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless

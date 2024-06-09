@@ -13,11 +13,10 @@ from unittest.mock import MagicMock, patch
 
 from logfunc.main import getLogger, logf
 
-
+from logfunc.defaults import TRUNC_STR_LEN
 from logfunc.main import (
     EVARS,
     MSG_FORMATS,
-    TRUNC_STR_LEN,
     handle_log,
     logf,
     Cfg,
@@ -39,7 +38,7 @@ def _find_id(msg: str, expected: bool = True) -> str:
 
 def clear_env_vars():
     for evar in EVARS:
-        os.environ.pop(evar, None)
+        os.environ.pop(evar[0], None)
 
 
 class TestUtils(unittest.TestCase):
@@ -89,6 +88,49 @@ def evar_and_param(
 class TestLogfEnvVars(unittest.TestCase):
     def setUp(self):
         clear_env_vars()
+
+    def test_cfg_evars(self):
+        for evtup in EVARS:
+            evar, eattr, ekwarg, edef = evtup
+            c = Cfg()
+            self.assertEqual(getattr(c, eattr), edef)
+
+    def test_cfg_evars_overrides(self):
+        for evtup in EVARS:
+            evar, eattr, ekwarg, edef = evtup
+            c = Cfg(**{ekwarg: 'test'})
+            self.assertEqual(getattr(c, eattr), 'test')
+
+            if isinstance(edef, bool):
+                os.environ[evar] = 'True'
+
+                c = Cfg()
+                self.assertEqual(getattr(c, eattr), True)
+
+                os.environ[evar] = 'False'
+                c = Cfg()
+                self.assertEqual(getattr(c, eattr), False)
+            elif evar == 'LOGF_USE_LOGGER':
+                os.environ[evar] = 'test'
+                with patch('logfunc.config.getLogger') as mock_getLogger:
+                    c = Cfg()
+                    self.assertEqual(
+                        getattr(c, eattr), mock_getLogger.return_value
+                    )
+                    self.assertTrue(mock_getLogger.call_count > 0)
+                    self.assertIn('test', mock_getLogger.call_args[0])
+            elif evar == 'LOGF_MAX_STR_LEN':
+                os.environ[evar] = '100'
+                c = Cfg()
+                self.assertEqual(getattr(c, eattr), 100)
+                os.environ[evar] = 'None'
+                c = Cfg()
+                self.assertEqual(getattr(c, eattr), None)
+
+            else:
+                os.environ[evar] = 'test'
+                c = Cfg()
+                self.assertEqual(getattr(c, eattr), 'test')
 
     def test_defaults(self):
         _long = TRUNC_STR_LEN * 5

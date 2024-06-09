@@ -6,71 +6,73 @@ from logging import getLogger
 
 import random as ran
 import string as s
+from . import defaults as _def
 
 
 ID_CHARS = s.ascii_letters + s.digits + '_-'
 ID_LEN = 6  # 68719476736 possible combinations
 
 EVARS = (
-    'LOGF_USE_PRINT',
-    'LOGF_SINGLE_MSG',
-    'LOGF_MAX_STR_LEN',
-    'LOGF_LEVEL',
-    'LOGF_LOG_ARGS',
-    'LOGF_LOG_RETURN',
-    'LOGF_LOG_EXEC_TIME',
-    'LOGF_USE_LOGGER',
-    'LOGF_LOG_LEVEL',
-    'LOGF_STACK_INFO',
-    'LOGF_IDENTIFIER',
+    ('LOGF_IDENTIFIER', 'identifier', 'identifier', _def.IDENTIFIER),
+    ('LOGF_LEVEL', 'level', 'level', _def.LEVEL),
+    ('LOGF_LOG_ARGS', 'log_args', 'log_args', _def.LOG_ARGS),
+    ('LOGF_LOG_RETURN', 'log_return', 'log_return', _def.LOG_RETURN),
+    ('LOGF_STACK_INFO', 'log_stack', 'log_stack_info', _def.LOG_STACK_INFO),
+    ('LOGF_LOG_EXEC_TIME', 'log_time', 'log_exec_time', _def.LOG_EXEC_TIME),
+    (
+        'LOGF_LOG_LEVEL',
+        'logf_log_level',
+        'logf_log_level',
+        _def.LOGF_LOG_LEVEL,
+    ),
+    ('LOGF_MAX_STR_LEN', 'max_str', 'max_str_len', _def.MAX_STR_LEN),
+    ('LOGF_SINGLE_MSG', 'single', 'single_msg', _def.SINGLE_MSG),
+    ('LOGF_USE_LOGGER', 'use_logger', 'use_logger', _def.USE_LOGGER),
+    ('LOGF_USE_PRINT', 'use_print', 'use_print', _def.USE_PRINT),
 )
 
 
 class Cfg:
     def __init__(self, **kwargs):
-        self.level = kwargs.get('level')
-        self.max_str = kwargs.get('max_str_len')
-        self.log_time = kwargs.get('log_exec_time')
-        self.single = kwargs.get('single_msg')
-        self.use_print = kwargs.get('use_print')
-        self.log_args = kwargs.get('log_args')
-        self.log_return = kwargs.get('log_return')
-        self.use_logger = kwargs.get('use_logger')
-        self.logf_log_level = kwargs.get('logf_log_level')
-        self.log_stack = kwargs.get('log_stack_info')
-        self.identifier = kwargs.get('identifier')
-
         # Override attributes based on environment variables
-        for ev in EVARS:
-            _ev = os.environ.get(ev)
-            if _ev is not None:
-                if ev == 'LOGF_MAX_STR_LEN':
-                    self.max_str = None if _ev.lower() == 'none' else int(_ev)
-                elif ev == 'LOGF_SINGLE_MSG':
-                    self.single = _ev.lower() == 'true'
-                elif ev == 'LOGF_USE_PRINT':
-                    self.use_print = _ev.lower() == 'true'
-                elif ev == 'LOGF_LOG_ARGS':
-                    self.log_args = _ev.lower() == 'true'
-                elif ev == 'LOGF_LOG_RETURN':
-                    self.log_return = _ev.lower() == 'true'
-                elif ev == 'LOGF_LOG_EXEC_TIME':
-                    self.log_time = _ev.lower() == 'true'
-                elif ev == 'LOGF_USE_LOGGER':
-                    self.use_logger = getLogger(_ev) if _ev else None
-                elif ev == 'LOGF_STACK_INFO':
-                    self.log_stack = _ev.lower() == 'true'
-                elif ev == 'LOGF_LOG_LEVEL':
-                    self.logf_log_level = str(_ev).upper()
-                elif ev == 'LOGF_IDENTIFIER':
-                    self.identifier = _ev.lower() == 'true'
+        for evtup in EVARS:
+            evname, evattr, evkwarg, evdef = evtup
+            setattr(self, evattr, kwargs.get(evkwarg, evdef))
+            osenv = os.environ.get(evname)
+
+            if osenv is not None:
+
+                if isinstance(evdef, bool):
+                    if osenv.lower() == 'true':
+                        setattr(self, evattr, True)
+                    elif osenv.lower() == 'false':
+                        setattr(self, evattr, False)
+                elif evname == 'LOGF_USE_LOGGER':
+                    setattr(self, evattr, getLogger(osenv) if osenv else None)
+
+                elif evname == 'LOGF_MAX_STR_LEN':
+                    setattr(
+                        self,
+                        evattr,
+                        None if osenv.lower() == 'none' else int(osenv),
+                    )
+                else:
+                    setattr(self, evattr, osenv)
+
+    def __repr__(self):  # pragma: no cover
+        attrs = ', '.join(
+            f'{k}={v}'
+            for k, v in self.__dict__.items()
+            if not k.startswith('_')
+        )
+        return f'<Cfg {attrs}>'
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
-ENTER_MSG = '-> {func_name}() | {args_str}'
+ENTER_MSG = '-> {func_name}() {args_str}'
 EXIT_MSG_NO_RETURN = '{func_name}() {exec_time}'
-EXIT_MSG = '<- {func_name}() {exec_time} | {result}'
-SINGLE_MSG = '{func_name}() {exec_time} | {args_str} | {result}'
+EXIT_MSG = '<- {func_name}() {exec_time} {result}'
+SINGLE_MSG = '{func_name}() {exec_time} {args_str} | {result}'
 ENTER_MSG_NO_ARGS = '{func_name}()'
 
 

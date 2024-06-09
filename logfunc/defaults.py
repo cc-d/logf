@@ -1,2 +1,16 @@
 TRUNC_STR_LEN = 1600
 EXEC_TIME_FMT = '%.4f'
+
+
+# default kwarg values
+LEVEL = None
+LOG_ARGS = True
+LOG_RETURN = True
+MAX_STR_LEN = TRUNC_STR_LEN
+LOG_EXEC_TIME = True
+SINGLE_MSG = False
+USE_PRINT = False
+USE_LOGGER = None
+LOG_STACK_INFO = False
+IDENTIFIER = True
+LOGF_LOG_LEVEL = None
