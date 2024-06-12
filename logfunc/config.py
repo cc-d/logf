@@ -1,7 +1,7 @@
 import os
 import random as ran
 import string as s
-from typing import Optional as Opt, Union
+from typing import Optional as Opt, Union as U, Any
 from logging import getLogger
 
 import random as ran
@@ -29,35 +29,39 @@ EVARS = (
     ('LOGF_SINGLE_MSG', 'single', 'single_msg', _def.SINGLE_MSG),
     ('LOGF_USE_LOGGER', 'use_logger', 'use_logger', _def.USE_LOGGER),
     ('LOGF_USE_PRINT', 'use_print', 'use_print', _def.USE_PRINT),
+    ('LOGF_REFRESH', 'refresh', 'refresh', _def.REFRESH),
 )
 
 
 class Cfg:
-    def __init__(self, **kwargs):
-        # Override attributes based on environment variables
+
+    @classmethod
+    def _eval_evar(cls, name: str, val: str, evdef: Any) -> Any:
+        if isinstance(evdef, bool):
+            return False if val.lower() == 'false' else True
+        elif name == 'LOGF_USE_LOGGER':
+            return getLogger(val) if val else None
+        elif name == 'LOGF_MAX_STR_LEN':
+            return None if val.lower() == 'none' else int(val)
+        return val
+
+    def _load_evars(self, **kwargs):
         for evtup in EVARS:
             evname, evattr, evkwarg, evdef = evtup
-            setattr(self, evattr, kwargs.get(evkwarg, evdef))
-            osenv = os.environ.get(evname)
+            val = os.environ.get(evname)
 
-            if osenv is not None:
+            if val is None:
+                setattr(self, evattr, kwargs.get(evkwarg, evdef))
+            else:
+                setattr(self, evattr, self._eval_evar(evname, val, evdef))
 
-                if isinstance(evdef, bool):
-                    if osenv.lower() == 'true':
-                        setattr(self, evattr, True)
-                    elif osenv.lower() == 'false':
-                        setattr(self, evattr, False)
-                elif evname == 'LOGF_USE_LOGGER':
-                    setattr(self, evattr, getLogger(osenv) if osenv else None)
+    def __init__(self, **kwargs):
+        # Override attributes based on environment variables
+        self._kwargs = kwargs
+        self._load_evars(**self._kwargs)
 
-                elif evname == 'LOGF_MAX_STR_LEN':
-                    setattr(
-                        self,
-                        evattr,
-                        None if osenv.lower() == 'none' else int(osenv),
-                    )
-                else:
-                    setattr(self, evattr, osenv)
+    def refresh(self):
+        self._load_evars(**self._kwargs)
 
     def __repr__(self):  # pragma: no cover
         attrs = ', '.join(

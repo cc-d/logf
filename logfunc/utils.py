@@ -24,10 +24,9 @@ def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
     no max_length is specified, the string is returned as-is. If a non-str is
     passed, it is cast to str before truncating.
 
-    Args:
-        tstr (Any): The object/str to truncate.
-        max_length (Opt[int | None]): The maximum length of the truncated str
-            Defaults to 1000.
+    `tstr (Any): The object/str to truncate.
+    ~max_length (Opt[int | None]): The maximum length of the truncated str
+        Defaults to 1000.
 
     Returns:
         str: The truncated string.
@@ -45,15 +44,10 @@ def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
 
 
 def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
-    """
-    Returns the logging level as an int.
-
-    Args:
-        level (Union[int, str]]): The logging level to use.
-            Defaults to logging.DEBUG.
-
-    Returns:
-        int: The logging level as an int.
+    """Returns the logging level as an int.
+    ~level (Union[int, str]]): The logging level to use.
+        Defaults to logging.DEBUG.
+    -> int: The logging level as an int.
     """
     if level is None:
         return logging.DEBUG
@@ -70,16 +64,14 @@ def handle_log(
 ) -> Union[Callable, None]:
     """Prints or logs the log message with improved logic for LOGF_USE_PRINT,
     LOGF_LEVEL, and LOGF_PRINT_ALL environment variables.
-    Args:
-        logmsg (str): The log message to print or log.
-        level (Opt[Union[int, str]]): The logging level to use.
-            Defaults to logging.INFO.
-        use_logger (logging.Logger): The logger to use for logging.
-            Defaults to None. If None, logging.log is used.
-        log_stack_info (bool): stack_info kwarg for logging.log
-            Defaults to False
-    Returns:
-        Callable: The function used to print/log
+    `logmsg (str): The log message to print or log.
+    ~level (Opt[Union[int, str]]): The logging level to use.
+        Defaults to logging.INFO.
+    ~use_logger (logging.Logger): The logger to use for logging.
+        Defaults to None. If None, logging.log is used.
+    ~log_stack_info (bool): stack_info kwarg for logging.log
+        Defaults to False
+    -> Callable: The function used to print/log
     """
     level_int = loglevel_int(level) if level is not None else logging.DEBUG
 

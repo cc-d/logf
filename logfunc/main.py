@@ -51,6 +51,7 @@ def logf(
     use_logger: Opt[U[Logger, str]] = _def.USE_LOGGER,
     log_stack_info: bool = _def.LOG_STACK_INFO,
     identifier: bool = _def.IDENTIFIER,
+    refresh: bool = _def.REFRESH,
     **kwargs
 ) -> U[Call[..., Any], Co[Any, Any, Any]]:
     """A highly customizable function decorator meant for effortless
@@ -95,14 +96,19 @@ def logf(
         log_return=log_return,
         use_logger=use_logger,
         identifier=identifier,
+        refresh=refresh,
     )
 
     # if param use_logger is a string, convert it to a logger
     if cfg.use_logger is not None and not isinstance(cfg.use_logger, Logger):
         cfg.use_logger = getLogger(use_logger)
 
+    _logger = cfg.use_logger if cfg.use_logger is not None else None
+
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         fname = func.__name__
+        if cfg.refresh:
+            cfg.refresh_vars()
 
         # ensure only last traceback is logged
 

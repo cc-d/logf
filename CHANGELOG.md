@@ -1,3 +1,12 @@
+## 2.8.0
+
+added refresh_vars method to Cfg vlass allowing for re-evaluation of env vars
+every time the logf wrapped function is called
+
+added LOGF_REFRESH env var to control this behaviour
+
+added tests/docs for this new functionality
+
 ## 2.7.1
 
 removed usage of fstrings causing 3.5 tests to fail (showing why those are useful!!!!)
