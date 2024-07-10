@@ -7,7 +7,7 @@ import string
 import sys
 import time
 import threading
-from traceback import format_exception
+
 from datetime import datetime
 from functools import wraps
 from typing import (
