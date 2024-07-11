@@ -6,7 +6,6 @@ import re
 import string
 import sys
 import time
-import threading
 
 from datetime import datetime
 from functools import wraps
