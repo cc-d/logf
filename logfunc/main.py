@@ -102,6 +102,15 @@ def logf(
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         fname = func.__name__
+        if (
+            fname == '__init__'
+            and hasattr(func, '__qualname__')
+            and func.__qualname__ != '__init__'
+        ):
+            fname = func.__qualname__
+            if fname.find('<locals>.') != -1:
+                fname = func.__qualname__.split('<locals>.')[-1]
+
         if cfg.refresh:
             cfg.refresh_vars()
 
@@ -153,19 +162,20 @@ def logf(
     return wrapper
 
 
-def _msg_enter(
-    func_name: str, args_str: str, cfg: Cfg, id: U[str, None]
-) -> None:
+def _msg_enter(func_name: str, args_str: str, cfg: Cfg, id: str) -> None:
     """Handles logging of the enter message for decorated functions."""
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
 
-    logmsg = MSG_FORMATS.enter.format(func_name=func_name, args_str=args_str)
+    if id:
+        id_func_name = '{} {}'.format(id, func_name)
+    else:
+        id_func_name = ' {}'.format(func_name)
 
-    if id is not None:
-        logmsg = logmsg.replace('()', '()[%s]' % id, 1)
-
+    logmsg = MSG_FORMATS.enter.format(
+        args_str=args_str, id_func_name=id_func_name
+    )
     if cfg.use_print:
         print(logmsg)
     else:
@@ -193,10 +203,8 @@ def _msg_exit(
         end_time,
         args_str,
         trunc_str(result, cfg.max_str) if cfg.log_return else '',
+        func_id=id if cfg.identifier and id is not None else ' ',
     )
-
-    if id is not None:
-        logmsg = logmsg.replace('()', '()[%s]' % id, 1)
 
     if cfg.use_print:
         print(logmsg)
@@ -220,6 +228,7 @@ def _enter(
 ) -> str:
     """Handles the enter for decorated functions and returns argstr"""
     argstr = build_argstr(args, kwargs, cfg.max_str, cfg.log_args)
+
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)
     return argstr

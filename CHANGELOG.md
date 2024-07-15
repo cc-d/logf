@@ -1,3 +1,14 @@
+## 2.9.0
+
+Added class names to **init** methods
+might expand later
+
+Improved identifier system
+
+improved visual clarity on enter/exit
+
+Made more efficient use of space, removed use of () in fucn names
+
 ## 2.8.0
 
 added refresh_vars method to Cfg vlass allowing for re-evaluation of env vars

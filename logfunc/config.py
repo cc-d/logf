@@ -73,11 +73,11 @@ class Cfg:
 
 
 ARGSSTR = '{func_args} {func_kwargs}'
-ENTER_MSG = '-> {func_name}() {args_str}'
-EXIT_MSG_NO_RETURN = '{func_name}() {exec_time}'
-EXIT_MSG = '<- {func_name}() {exec_time} {result}'
-SINGLE_MSG = '{func_name}() {exec_time} {args_str} | {result}'
-ENTER_MSG_NO_ARGS = '{func_name}()'
+ENTER_MSG = '->|{id_func_name} {args_str}'
+EXIT_MSG_NO_RETURN = '{id_func_name} {exec_time}'
+EXIT_MSG = '<-|{id_func_name} {exec_time} {result}'
+SINGLE_MSG = '{func_name} {exec_time} {args_str} | {result}'
+ENTER_MSG_NO_ARGS = '->|{id_func_name}'
 
 
 class MSG_FORMATS:
