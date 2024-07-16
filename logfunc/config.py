@@ -10,7 +10,7 @@ from . import defaults as _def
 
 
 ID_CHARS = s.ascii_letters + s.digits + '_-'
-ID_LEN = 6  # 68719476736 possible combinations
+ID_LEN = 6  # 68719476736
 
 EVARS = (
     ('LOGF_IDENTIFIER', 'identifier', 'identifier', _def.IDENTIFIER),

@@ -25,6 +25,7 @@ from .utils import (
     trunc_str,
     build_argstr,
     identifier as _get_id,
+    build_fname as b_fname,
 )
 from .config import EVARS, MSG_FORMATS, Cfg
 
@@ -101,16 +102,7 @@ def logf(
     _logger = cfg.use_logger if cfg.use_logger is not None else None
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
-        fname = func.__name__
-        if (
-            fname == '__init__'
-            and hasattr(func, '__qualname__')
-            and func.__qualname__ != '__init__'
-        ):
-            fname = func.__qualname__
-            if fname.find('<locals>.') != -1:
-                fname = func.__qualname__.split('<locals>.')[-1]
-
+        fname = b_fname(func)
         if cfg.refresh:
             cfg.refresh_vars()
 
@@ -227,8 +219,22 @@ def _enter(
     func_name: str, args: Tuple, kwargs: Dict, cfg: Cfg, id: U[str, None]
 ) -> str:
     """Handles the enter for decorated functions and returns argstr"""
-    argstr = build_argstr(args, kwargs, cfg.max_str, cfg.log_args)
+    _exclude_self = False
 
+    if func_name.endswith('__init__') and not func_name.startswith('__init__'):
+        if (
+            len(args) > 0
+            and isinstance(args[0], object)
+            and func_name.split('.')[0] in args[0].__class__.__name__
+        ):
+            _exclude_self = True
+
+    argstr = build_argstr(
+        args if not _exclude_self else args[1:],
+        kwargs,
+        cfg.max_str,
+        cfg.log_args,
+    )
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)
     return argstr

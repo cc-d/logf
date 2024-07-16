@@ -14,8 +14,12 @@ def build_argstr(
     """formats the args and kwargs into a string for logging"""
     if not log_args:
         return ''
+    args = '' if args == tuple() else args
+    kwargs = '' if kwargs == {} else kwargs
     args, kwargs = trunc_str(args, max_length), trunc_str(kwargs, max_length)
-    return MSG_FORMATS.argstr.format(func_args=args, func_kwargs=kwargs)
+    return MSG_FORMATS.argstr.format(
+        func_args=args if args else '', func_kwargs=kwargs if kwargs else ''
+    )
 
 
 def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
@@ -89,3 +93,19 @@ def identifier(len=ID_LEN, chars=ID_CHARS) -> str:
     """
 
     return ''.join(choice(chars) for _ in range(len))
+
+
+def build_fname(f: Callable) -> str:
+    try:
+        fname = f.__qualname__
+    except:
+        try:
+            fname = f.__name__
+        except:
+            fname = 'NO_FUNC_NAME'
+    if fname.find('<locals>.') != -1:
+        fname = f.__qualname__.split('<locals>.')[-1]
+    return fname
+
+
+# rekvef roq;/l
