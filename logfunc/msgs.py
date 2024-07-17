@@ -1,4 +1,3 @@
-import asyncio
 from .config import MSG_FORMATS
 
 
