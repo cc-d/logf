@@ -104,8 +104,8 @@ def build_fname(f: Callable) -> str:
         except:
             fname = 'NO_FUNC_NAME'
     if fname.find('<locals>.') != -1:
-        fname = f.__qualname__.split('<locals>.')[-1]
+        if hasattr(f, '__qualname__'):
+            fname = f.__qualname__.split('<locals>.')[-1]
+        else:
+            fname = f.__name__.split('<locals>.')[-1]
     return fname
-
-
-# rekvef roq;/l

@@ -185,6 +185,12 @@ def _msg_exit(
     id: U[str, None],
 ) -> None:
     """Handles logging of the exit message for decorated functions."""
+    if (
+        result is None
+        and func_name.endswith('__init__')
+        and not func_name.startswith('__init__')
+    ):
+        return
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
@@ -208,11 +214,13 @@ def _msg_exit(
 
 def _endtime(start_time: U[float, None], end_time: U[float, None]) -> str:
     """Returns the time elapsed since the start time."""
-    return (
-        ''
-        if start_time is None
-        else (EXEC_TIME_FMT % (end_time - start_time)) + 's'
-    )
+    if start_time is None:
+        return ''
+    diff_str = EXEC_TIME_FMT % (end_time - start_time) + 's'
+    for c in diff_str:
+        if c not in {'0', '.', 's'}:
+            return diff_str
+    return ''
 
 
 def _enter(
@@ -225,7 +233,7 @@ def _enter(
         if (
             len(args) > 0
             and isinstance(args[0], object)
-            and func_name.split('.')[0] in args[0].__class__.__name__
+            and func_name.split('.')[-2] in args[0].__class__.__name__
         ):
             _exclude_self = True
 
