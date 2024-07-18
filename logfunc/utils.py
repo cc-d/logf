@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from random import choice
-import inspect as _insp
+
 from typing import Any, Callable, Dict, Optional as Opt, Tuple, Union
 from .config import EVARS, ID_CHARS, ID_LEN
 from .msgs import MSG_FORMATS
@@ -74,7 +74,7 @@ def handle_log(
     ~use_logger (logging.Logger): The logger to use for logging.
         Defaults to None. If None, logging.log is used.
     ~log_stack_info (bool): stack_info kwarg for logging.log
-        Defaults to False
+        Defaults to False`
     -> Callable: The function used to print/log
     """
     level_int = loglevel_int(level) if level is not None else logging.DEBUG
