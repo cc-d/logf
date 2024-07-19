@@ -9,7 +9,6 @@ from typing import (
     Any,
     Callable as Call,
     Optional as Opt,
-    TypeVar,
     Union as U,
     Dict,
     Iterable,
