@@ -97,8 +97,6 @@ def logf(
     if cfg.use_logger is not None and not isinstance(cfg.use_logger, Logger):
         cfg.use_logger = getLogger(use_logger)
 
-    _logger = cfg.use_logger if cfg.use_logger is not None else None
-
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         fname = b_fname(func)
         if cfg.refresh:
