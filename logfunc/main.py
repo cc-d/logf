@@ -233,12 +233,14 @@ def _enter(
         ):
             _exclude_self = True
 
-    argstr = build_argstr(
-        args if not _exclude_self else args[1:],
-        kwargs,
-        cfg.max_str,
-        cfg.log_args,
-    )
+    if cfg.log_args:
+        argstr = build_argstr(
+            args if not _exclude_self else args[1:], kwargs, cfg.max_str
+        )
+    else:
+        argstr = ''
+
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)
+
     return argstr

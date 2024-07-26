@@ -8,11 +8,10 @@ from .defaults import TRUNC_STR_LEN
 
 
 def build_argstr(
-    args: Tuple, kwargs: Dict, max_length: Union[int, None], log_args: bool
+    args: Tuple, kwargs: Dict, max_length: Union[int, None]
 ) -> str:
     """formats the args and kwargs into a string for logging"""
-    if not log_args:
-        return ''
+
     args = '' if args == tuple() else args
     kwargs = '' if kwargs == {} else kwargs
     args, kwargs = trunc_str(args, max_length), trunc_str(kwargs, max_length)
