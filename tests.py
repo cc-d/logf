@@ -610,7 +610,17 @@ class TestLogfRegression(ut.TestCase):
         self.assertNotIn('__TEST__', ' '.join(msgs.output))
 
 
-class TestLogfClassInit(ut.TestCase):
+class LogTestCase(ut.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_logout(self: 'LogTestCase', f, level=logging.DEBUG) -> List[str]:
+        with self.assertLogs(level=level) as l:
+            f()
+        return l.output
+
+
+class TestLogfClassInit(LogTestCase):
     _kw = {'use_print': True}
 
     def setUp(self):
@@ -653,3 +663,13 @@ class TestLogfClassInit(ut.TestCase):
     @logf(single_msg=True, use_print=True)
     def test_single_msg(self):
         return 1
+
+    def test_format(self):
+        @logf(log_args=False)
+        def f():
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as l:
+            f()
+
+        out = self.get_logout(f)
