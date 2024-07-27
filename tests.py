@@ -57,6 +57,22 @@ class TestUtils(ut.TestCase):
         self.assertEqual(loglevel_int(), logging.DEBUG)
         self.assertEqual(loglevel_int(None), logging.DEBUG)
 
+    def test_build_argstr_trunc(self):
+        @logf(max_str_len=5)
+        def f(*args, **kwargs):
+            return 1
+
+        with self.assertLogs(level=logging.DEBUG) as lg:
+            f(
+                'a' * 100000,
+                'short',
+                'longlonglonglongtrunc',
+                b='b' * 10000,
+                b2='betwo',
+            )
+        out = lg.output
+        self.assertIn('betwo', ''.join(out))
+
 
 def evar_and_param(
     evar_name,

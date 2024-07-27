@@ -72,7 +72,6 @@ class Cfg:
         return '<Cfg %s>' % attrs
 
 
-ARGSSTR = '{func_args} {func_kwargs}'
 ENTER_MSG = '->|{id_func_name} {args_str}'
 EXIT_MSG_NO_RETURN = '{id_func_name} {exec_time}'
 EXIT_MSG = '<-|{id_func_name} {exec_time} {result}'
@@ -81,7 +80,7 @@ ENTER_MSG_NO_ARGS = '->|{id_func_name}'
 
 
 class MSG_FORMATS:
-    argstr = ARGSSTR
+
     enter = ENTER_MSG
     enter_no_args = ENTER_MSG_NO_ARGS
     exit = EXIT_MSG

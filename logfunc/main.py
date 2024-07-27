@@ -181,6 +181,7 @@ def _msg_exit(
     id: U[str, None],
 ) -> None:
     """Handles logging of the exit message for decorated functions."""
+
     if (
         result is None
         and func_name.endswith('__init__')
@@ -190,6 +191,9 @@ def _msg_exit(
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
+
+    if not end_time and cfg.log_time:
+        end_time = '0.0s'
 
     logmsg = msgs.exit_msg(
         cfg.single,
@@ -233,12 +237,9 @@ def _enter(
         ):
             _exclude_self = True
 
-    if cfg.log_args:
-        argstr = build_argstr(
-            args if not _exclude_self else args[1:], kwargs, cfg.max_str
-        )
-    else:
-        argstr = ''
+    argstr = build_argstr(
+        args if not _exclude_self else args[1:], kwargs, cfg.max_str
+    )
 
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)

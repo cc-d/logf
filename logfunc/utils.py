@@ -11,13 +11,22 @@ def build_argstr(
     args: Tuple, kwargs: Dict, max_length: Union[int, None]
 ) -> str:
     """formats the args and kwargs into a string for logging"""
+    if args:
+        argskwargs = '(%s) ' % ', '.join(
+            [trunc_str(a, max_length) for a in args]
+        )
+    else:
+        argskwargs = ''
 
-    args = '' if args == tuple() else args
-    kwargs = '' if kwargs == {} else kwargs
-    args, kwargs = trunc_str(args, max_length), trunc_str(kwargs, max_length)
-    return MSG_FORMATS.argstr.format(
-        func_args=args if args else '', func_kwargs=kwargs if kwargs else ''
-    )
+    if kwargs:
+        argskwargs += '{%s}' % ', '.join(
+            [
+                '%s=%s' % (k, trunc_str(kwargs.get(k), max_length))
+                for k in kwargs
+            ]
+        )
+
+    return argskwargs
 
 
 def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:

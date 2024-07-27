@@ -1,3 +1,13 @@
+## 2.9.1
+
+individual arg/kwarg length plus udpated tests to confirm
+
+exec time rounded to 0 executions now show exec time as 0.0s
+
+updated tests
+
+im tired
+
 ## 2.9.0
 
 Added class names to **init** methods
