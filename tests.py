@@ -658,8 +658,6 @@ class TestLogfClassInit(LogTestCase):
         t = Test()
         t.t2 = Test2()
 
-        print(dir(t.t2), t.t2.__init__.__qualname__)
-
     @logf(single_msg=True, use_print=True)
     def test_single_msg(self):
         return 1
