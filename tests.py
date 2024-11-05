@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 
 from logfunc.main import getLogger, logf
 
-sys.path.append(abspath(dirname(__file__)))
 
 from logfunc.main import (
     EVARS,
