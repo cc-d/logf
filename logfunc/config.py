@@ -8,7 +8,6 @@ import random as ran
 import string as s
 from . import defaults as _def
 
-
 ID_CHARS = s.ascii_letters + s.digits + '_-'
 ID_LEN = 6
 
@@ -72,11 +71,11 @@ class Cfg:
         return '<Cfg %s>' % attrs
 
 
-ENTER_MSG = '->|{id_func_name} {args_str}'
+ENTER_MSG = '->{id_func_name} {args_str}'
 EXIT_MSG_NO_RETURN = '{id_func_name} {exec_time}'
-EXIT_MSG = '<-|{id_func_name} {exec_time} {result}'
-SINGLE_MSG = '<>|{func_name} {exec_time} {args_str} | {result}'
-ENTER_MSG_NO_ARGS = '->|{id_func_name}'
+EXIT_MSG = '<-{id_func_name} {exec_time} {result}'
+SINGLE_MSG = '<->{func_name} {exec_time} {args_str} | {result}'
+ENTER_MSG_NO_ARGS = '->{id_func_name}'
 
 
 class MSG_FORMATS:
