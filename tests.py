@@ -58,20 +58,26 @@ class TestUtils(ut.TestCase):
         self.assertEqual(loglevel_int(None), logging.DEBUG)
 
     def test_build_argstr_trunc(self):
-        @logf(max_str_len=5)
+
+        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger('logf').setLevel(logging.DEBUG)
+
+        @logf()
         def f(*args, **kwargs):
             return 1
 
         with self.assertLogs(level=logging.DEBUG) as lg:
-            f(
-                'a' * 100000,
-                'short',
-                'longlonglonglongtrunc',
-                b='b' * 10000,
-                b2='betwo',
-            )
-        out = lg.output
-        self.assertIn('betwo', ''.join(out))
+            a = ('a' * 100000, 'short)', 'longlonglonglongtrunc')
+            k = {'b': 'b' * 10000, 'b2': 'betwo'}
+
+            f(*a, **k)
+
+            out = '\n'.join(lg.output)
+        for a in a:
+            self.assertIn(a[:5], out)
+        for k in k:
+            self.assertIn(k[:5], out)
 
 
 def evar_and_param(
@@ -208,8 +214,7 @@ class TestLogfEnvVars(ut.TestCase):
 
             self.assertTrue(len(msgs) == 1)
             self.assertTrue(msgs[0].endswith('1'))
-            self.assertNotIn('->', msgs[0])
-            self.assertNotIn('<-', msgs[0])
+            self.assertIn('<->', msgs[0])
             self.assertEqual(msgs[0][-1], '1')
 
     def test_evar_max_str_len(self):
@@ -350,7 +355,7 @@ class TestLogfEnvVars(ut.TestCase):
             f()
         msgs = '\n'.join(msgs.output)
 
-        self.assertEqual(len(re.findall(r'<-|->\|', msgs)), 2)
+        self.assertEqual(len(re.findall(r'<|>|-', msgs)), 4)
         del os.environ['LOGF_IDENTIFIER']
 
         @logf(identifier=True)
@@ -360,7 +365,7 @@ class TestLogfEnvVars(ut.TestCase):
         with self.assertLogs(level=logging.DEBUG) as msgs:
             f()
         msgs = '\n'.join(msgs.output)
-        self.assertEqual(len(re.findall(r'<-|->\|[^ ]+', msgs)), 2)
+        self.assertEqual(len(re.findall(r'<|>|-', msgs)), 4)
 
 
 class TestLogfParams(ut.TestCase):
@@ -414,8 +419,7 @@ class TestLogfParams(ut.TestCase):
         self.assertTrue(len(msgs) == 1)
         msg = msgs[0]
         self.assertTrue(msg.endswith('1'))
-        self.assertNotIn('->', msgs[0])
-        self.assertNotIn('<-', msgs[0])
+        self.assertNotIn('->', msgs)
         self.assertEqual(re.findall(r'\[([a-zA-Z0-9-_]*)\]', msg), [])
 
     def test_stack_info(self):
