@@ -2,7 +2,8 @@ import logging
 from random import choice
 
 from typing import Any, Callable, Dict, Optional as Opt, Tuple, Union
-from .config import EVARS, ID_CHARS, ID_LEN
+from decimal import Decimal as D
+from .config import EVARS, ID_CHARS, ID_LEN, TIME_TABLE
 from .msgs import MSG_FORMATS
 from .defaults import TRUNC_STR_LEN
 
@@ -54,7 +55,7 @@ def trunc_str(tstr: Any, max_length: Union[int, None]) -> str:
         return tstr[0:max_length] + '...'
 
 
-def loglevel_int(level: Union[int, str] = logging.DEBUG) -> int:
+def loglevel_int(level: Union[int, str, None] = logging.DEBUG) -> int:
     """Returns the logging level as an int.
     ~level (Union[int, str]]): The logging level to use.
         Defaults to logging.DEBUG.
@@ -116,3 +117,22 @@ def build_fname(f: Callable) -> str:
         else:
             fname = f.__name__.split('<locals>.')[-1]
     return fname
+
+
+def time_str(t):
+    """Convert seconds to human-readable time using the most appropriate unit.
+    Supports: ns, µs, ms, s, min. Scales up or down for clarity.
+    Works with Python 3.5+ (no f-strings).
+    """
+    if t >= 60:
+        return '%.4fM' % (t / 60.0)
+    elif t >= 1:
+        return '%.4fs' % t
+    elif t >= 1e-3:
+        return '%.2fms' % (t * 1e3)
+    elif t >= 1e-4:
+        return '%.2fms' % (t * 1e3)
+    elif t >= 1e-7:
+        return '%.2fµs' % (t * 1e6)
+    else:
+        return '%.1fns' % (t * 1e9)

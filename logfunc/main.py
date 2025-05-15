@@ -12,6 +12,7 @@ from typing import (
     Dict,
     Iterable,
     Coroutine as Co,
+    Awaitable,
     List,
     Tuple,
 )
@@ -24,6 +25,7 @@ from .utils import (
     build_argstr,
     identifier as _get_id,
     build_fname as b_fname,
+    time_str,
 )
 from .config import EVARS, MSG_FORMATS, Cfg
 
@@ -47,7 +49,7 @@ def logf(
     identifier: bool = _def.IDENTIFIER,
     refresh: bool = _def.REFRESH,
     **kwargs
-) -> U[Call[..., Any], Co[Any, Any, Any]]:
+) -> Call[..., Any]:
     """A highly customizable function decorator meant for effortless
     leave-and-forget logging of function calls, both synchronous and
     asynchronous. Logs the function name, arguments, return value and
@@ -82,7 +84,7 @@ def logf(
     cfg = Cfg(
         level=level,
         max_str_len=max_str_len,
-        log_exec_time=kwargs.get('measure_time', log_exec_time),
+        log_exec_time=kwargs.get("measure_time", log_exec_time),
         single_msg=single_msg,
         log_stack_info=log_stack_info,
         use_print=use_print,
@@ -95,20 +97,22 @@ def logf(
 
     # if param use_logger is a string, convert it to a logger
     if cfg.use_logger is not None and not isinstance(cfg.use_logger, Logger):
-        cfg.use_logger = getLogger(use_logger)
+        cfg.use_logger = getLogger(use_logger)  # type: ignore
 
     def wrapper(func: Call[..., Any]) -> U[Call[..., Any], Co[Any, Any, Any]]:
         fname = b_fname(func)
         if cfg.refresh:
-            cfg.refresh_vars()
+            cfg.reload()
 
         # ensure only last traceback is logged
 
         if _insp.iscoroutinefunction(func):
 
             @wraps(func)
-            async def decorator(*args, **kwargs) -> Any:
-                _id = _get_id() if cfg.identifier and not cfg.single else None
+            async def decorator(*args, **kwargs) -> Any:  # type: ignore
+                _id = (
+                    _get_id() if cfg.identifier and not cfg.single else 'None'
+                )
 
                 _start = aio.get_event_loop().time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg, _id)
@@ -117,8 +121,8 @@ def logf(
                 _msg_exit(
                     result,
                     fname,
-                    argstr,
                     _endtime(_start, aio.get_event_loop().time()),
+                    argstr,
                     cfg,
                     _id,
                 )
@@ -150,19 +154,21 @@ def logf(
     return wrapper
 
 
-def _msg_enter(func_name: str, args_str: str, cfg: Cfg, id: str) -> None:
+def _msg_enter(
+    func_name: str, args_str: str, cfg: Cfg, id: str | None
+) -> None:
     """Handles logging of the enter message for decorated functions."""
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
 
     if id:
-        id_func_name = '{} {}'.format(id, func_name)
+        id_func_name = "[{}] {}".format(id, func_name)
     else:
-        id_func_name = ' {}'.format(func_name)
+        id_func_name = "{}".format(func_name)
 
     logmsg = MSG_FORMATS.enter.format(
-        args_str=args_str, id_func_name=id_func_name
+        id_func_name=id_func_name, args_str=args_str
     )
     if cfg.use_print:
         print(logmsg)
@@ -184,8 +190,8 @@ def _msg_exit(
 
     if (
         result is None
-        and func_name.endswith('__init__')
-        and not func_name.startswith('__init__')
+        and func_name.endswith("__init__")
+        and not func_name.startswith("__init__")
     ):
         return
     if cfg.level is not None and cfg.logf_log_level is not None:
@@ -193,15 +199,15 @@ def _msg_exit(
             return
 
     if not end_time and cfg.log_time:
-        end_time = '0.0s'
+        end_time = "0.000s"
 
     logmsg = msgs.exit_msg(
         cfg.single,
         func_name,
         end_time,
         args_str,
-        trunc_str(result, cfg.max_str) if cfg.log_return else '',
-        func_id=id if cfg.identifier and id is not None else ' ',
+        trunc_str(result, cfg.max_str) if cfg.log_return else "",
+        func_id=id if cfg.identifier and id is not None else "",
     )
 
     if cfg.use_print:
@@ -214,13 +220,10 @@ def _msg_exit(
 
 def _endtime(start_time: U[float, None], end_time: U[float, None]) -> str:
     """Returns the time elapsed since the start time."""
-    if start_time is None:
-        return ''
-    diff_str = EXEC_TIME_FMT % (end_time - start_time) + 's'
-    for c in diff_str:
-        if c not in {'0', '.', 's'}:
-            return diff_str
-    return ''
+    if start_time is None or end_time is None:
+        return ""
+
+    return time_str(end_time - start_time)
 
 
 def _enter(
@@ -229,11 +232,11 @@ def _enter(
     """Handles the enter for decorated functions and returns argstr"""
     _exclude_self = False
 
-    if func_name.endswith('__init__') and not func_name.startswith('__init__'):
+    if func_name.endswith("__init__") and not func_name.startswith("__init__"):
         if (
             len(args) > 0
             and isinstance(args[0], object)
-            and func_name.split('.')[-2] in args[0].__class__.__name__
+            and func_name.split(".")[-2] in args[0].__class__.__name__
         ):
             _exclude_self = True
 

@@ -4,10 +4,11 @@ from .config import MSG_FORMATS
 def exit_msg(single_msg, func_name, exec_time, args_str, result_str, func_id):
     """builds the exit message for logf call"""
 
-    if func_id is None:
+    if not func_id:
         idname = '{}'.format(func_name)
     else:
-        idname = '{} {}'.format(func_id, func_name)
+        idname = '[{}] {}'.format(func_id, func_name)
+    # print('@@2', func_id, func_name, idname)
     if single_msg:
         return MSG_FORMATS.single.format(
             func_name=func_name,

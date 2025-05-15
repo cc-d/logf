@@ -1,7 +1,7 @@
 import os
 import random as ran
 import string as s
-from typing import Optional as Opt, Union as U, Any
+from typing import Optional as Opt, Union as U, Any, Tuple
 from logging import getLogger
 
 import random as ran
@@ -33,6 +33,21 @@ EVARS = (
 
 
 class Cfg:
+    __slots__ = (
+        'identifier',
+        'level',
+        'log_args',
+        'log_return',
+        'log_stack',
+        'log_time',
+        'logf_log_level',
+        'max_str',
+        'single',
+        'use_logger',
+        'use_print',
+        'refresh',
+        '_kwargs',
+    )
 
     @classmethod
     def _eval_evar(cls, name: str, val: str, evdef: Any) -> Any:
@@ -59,7 +74,7 @@ class Cfg:
         self._kwargs = kwargs
         self._load_evars(**self._kwargs)
 
-    def refresh(self):
+    def reload(self):
         self._load_evars(**self._kwargs)
 
     def __repr__(self):  # pragma: no cover
@@ -71,11 +86,22 @@ class Cfg:
         return '<Cfg %s>' % attrs
 
 
-ENTER_MSG = '->{id_func_name} {args_str}'
-EXIT_MSG_NO_RETURN = '{id_func_name} {exec_time}'
-EXIT_MSG = '<-{id_func_name} {exec_time} {result}'
-SINGLE_MSG = '<->{func_name} {exec_time} {args_str} | {result}'
-ENTER_MSG_NO_ARGS = '->{id_func_name}'
+class CHARS:
+
+    ENTER = '>'
+    EXIT = '<'
+    SINGLE = '-'
+
+    @classmethod
+    def __values__(cls) -> Tuple[str, str, str]:
+        return (cls.ENTER, cls.EXIT, cls.SINGLE)
+
+
+ENTER_MSG = CHARS.ENTER + ' {id_func_name}() {args_str}'
+EXIT_MSG_NO_RETURN = CHARS.EXIT + ' {id_func_name}() {exec_time} '
+EXIT_MSG = CHARS.EXIT + ' {id_func_name}() {exec_time} {result}'
+SINGLE_MSG = CHARS.SINGLE + '{func_name}() {exec_time} {args_str} | {result}'
+ENTER_MSG_NO_ARGS = CHARS.ENTER + ' {id_func_name}()'
 
 
 class MSG_FORMATS:
@@ -85,3 +111,6 @@ class MSG_FORMATS:
     exit = EXIT_MSG
     exit_no_return = EXIT_MSG_NO_RETURN
     single = SINGLE_MSG
+
+
+TIME_TABLE = tuple(reversed(['s', 'ms', 'us']))

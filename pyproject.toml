@@ -31,3 +31,13 @@ Changelog = "https://github.com/cc-d/logf/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 packages = ["logfunc"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest<8.4,>6",
+    "pytest-asyncio<0.27",
+    "pytest-cov<6.2",
+    "pytest-html<4.1.1",
+    "pytest-metadata<3.2",
+    "pytest-xdist<3.6.2",
+]

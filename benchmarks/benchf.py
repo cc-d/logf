@@ -8,7 +8,7 @@ from logfunc import logf
 
 
 @logf()
-def rec_self_func(f=None, n=0, max=300, nologf=False):
+def rec_self_func(f=None, n=0, max=400, nologf=False):
     if n >= max:
         return f
     if nologf:
