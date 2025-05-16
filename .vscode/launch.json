@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests.py",
+        "-s",
+        "-vv",
+        "-x",
+        "--log-cli-level=DEBUG",
+        "--cov=logfunc"
+      ],
+      "console": "integratedTerminal"
+    }
+  ]
+}

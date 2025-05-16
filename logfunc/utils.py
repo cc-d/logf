@@ -104,35 +104,30 @@ def identifier(len=ID_LEN, chars=ID_CHARS) -> str:
 
 
 def build_fname(f: Callable) -> str:
+
     try:
-        fname = f.__qualname__
-    except:
+        fname = getattr(f, '__qualname__')
+    except AttributeError:
         try:
-            fname = f.__name__
-        except:
+            fname = getattr(f, '__name__')
+        except AttributeError:
             fname = 'NO_FUNC_NAME'
+
     if fname.find('<locals>.') != -1:
-        if hasattr(f, '__qualname__'):
-            fname = f.__qualname__.split('<locals>.')[-1]
-        else:
-            fname = f.__name__.split('<locals>.')[-1]
+        fname = fname.split('<locals>.')[-1]
+
     return fname
 
 
 def time_str(t):
-    """Convert seconds to human-readable time using the most appropriate unit.
-    Supports: ns, µs, ms, s, min. Scales up or down for clarity.
-    Works with Python 3.5+ (no f-strings).
-    """
+
     if t >= 60:
         return '%.4fM' % (t / 60.0)
     elif t >= 1:
         return '%.4fs' % t
-    elif t >= 1e-3:
-        return '%.2fms' % (t * 1e3)
     elif t >= 1e-4:
-        return '%.2fms' % (t * 1e3)
-    elif t >= 1e-7:
-        return '%.2fµs' % (t * 1e6)
+        return '%.3fms' % round((t * 1e3), 3)
+    elif t >= 1e-6:
+        return '%.2fus' % round((t * 1e3 * 1e3), 2)
     else:
-        return '%.1fns' % (t * 1e9)
+        return '%.1fns' % round((t * 1e3 * 1e3 * 1e3), 2)

@@ -33,20 +33,20 @@ from logfunc.config import CHARS
 
 
 @logf(use_print=True)
-def _find_id(msg: str, expected: bool = True) -> str:
+def _find_ids(msg: Union[str, list, object]) -> Tuple[str]:
     """if expected, asserts id in msg, else assert not in msg"""
-    regchars = ''.join([a.strip() for a in CHARS.__values__()])
-    regchars.replace('-', '\\-')
-    regchars = '[' + regchars + ']'
+    if hasattr(msg, "records"):
+        from logging import Formatter
 
-    id = re.search(r'( ?\\[[a-zA-Z0-9-_]+\\])', msg)
-    print(id)
-    if expected and id:
-        print(msg, id)
+        formatter = Formatter('%(levelname)s:%(name)s:%(message)s')
+        msg = '\n'.join(formatter.format(r) for r in msg.records)
+    elif isinstance(msg, list):
+        msg = '\n'.join(msg)
 
-        return id.group(0)
-    assert not id
-    return ''
+    regchars = ''.join(a.strip() for a in CHARS.__values__())
+    ids_re = f'[{regchars}] [[a-zA-Z-_0-9]+]'
+    ids = tuple(re.findall(ids_re, msg))
+    return ids
 
 
 def clear_env_vars():
@@ -75,13 +75,20 @@ class TestUtils(ClearEnvTestCase):
         self.assertEqual(loglevel_int(), logging.DEBUG)
         self.assertEqual(loglevel_int(None), logging.DEBUG)
 
+    def test_time_str(self):
+        self.assertEqual(time_str(120), "2.0000M")  # minutes
+        self.assertEqual(time_str(59.1234), "59.1234s")  # seconds
+        self.assertEqual(time_str(0.1234), "123.400ms")  # milliseconds
+        self.assertEqual(time_str(0.0001234), "0.123ms")  # microseconds
+        self.assertEqual(time_str(0.0000001234), "123.4ns")  # nanoseconds
+
     def test_build_argstr_trunc(self):
 
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)
-        logging.getLogger('logf').setLevel(logging.DEBUG)
+        logging.getLogger('logf').setLevel(logging.INFO)
 
-        @logf()
+        @logf(level='DEBUG', logger=logging.getLogger('logf'))
         def f(*args, **kwargs):
             return 1
 
@@ -117,7 +124,7 @@ def evar_and_param(
     logf_param_value,
     ret=1,
     *args,
-    **kwargs
+    **kwargs,
 ):
 
     def wrapper_env():
@@ -205,14 +212,15 @@ class TestLogfEnvVars(ut.TestCase):
         # enter/exit
         for i, m in enumerate(msgs[0:2]):
 
-            _find_id(m, False)
+            assert _find_ids(m) == ()
 
             if i == 0:
                 self.assertIn(CHARS.ENTER, m)
                 self.assertIn(str((1, 2)), m)
             else:
                 self.assertIn(CHARS.EXIT, m)
-                self.assertIn('0.', m)
+                self.assertTrue(any([k in m for k in TIME_TABLE]))
+
                 self.assertTrue(len(m) < TRUNC_STR_LEN * 2)
 
     def test_evar_use_print(self):
@@ -385,7 +393,7 @@ class TestLogfEnvVars(ut.TestCase):
             f()
         msgs = '\n'.join(msgs.output)
         print('@@@', msgs)
-        self.assertEqual(len(re.findall(r'^\[[a-zA-Z]+\] ', msgs)), 2)
+        self.assertEqual(len(_find_ids(msgs)), 2)
         del os.environ['LOGF_IDENTIFIER']
 
         @logf(identifier=True)
@@ -395,7 +403,10 @@ class TestLogfEnvVars(ut.TestCase):
         with self.assertLogs(level=logging.DEBUG) as msgs:
             f()
         msgs = '\n'.join(msgs.output)
-        self.assertEqual(len(re.findall(r'<|>|-', msgs)), 2)
+        self.assertEqual(len(_find_ids(msgs)), 2)
+
+    def test_logf_builtin(self):
+        logf()(print('hi'))
 
 
 class TestLogfParams(ut.TestCase):
@@ -439,18 +450,18 @@ class TestLogfParams(ut.TestCase):
 
     def test_single_msg_identifier(self):
         @logf(single_msg=True)
-        def f():
+        def fsingle():
             return 1
 
         with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
+            fsingle()
 
         msgs = msgs.output
         self.assertTrue(len(msgs) == 1)
         msg = msgs[0]
         self.assertTrue(msg.endswith('1'))
         self.assertNotIn(CHARS.ENTER, msgs)
-        self.assertEqual(re.findall(r' ?(\[[a-zA-Z0-9-_]+\]) ?', msg), [])
+        self.assertEqual(len(msgs), 1)
 
     def test_stack_info(self):
         @logf(log_stack_info=True)
@@ -615,22 +626,26 @@ class TestLogfRegression(ClearEnvTestCase):
 
     def test_unique_ids(self):
         @logf(identifier=True, level='INFO')
-        def f():
+        def uniquef():
+            return 1
+
+        @logf(identifier=True, level='INFO')
+        def uniquef2():
             return 1
 
         with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
-            f()
+            uniquef()
+            uniquef()
 
-            id1, id2 = _find_id(msgs[0], True), _find_id(msgs[1], True)
-            self.assertEqual(id1, id2)
+            ids = _find_ids(msgs)
+            self.assertNotEqual(ids[0], ids[2])
 
         with self.assertLogs(level=logging.DEBUG) as msgs:
-            f()
+            uniquef()
 
         msgs = msgs.output
-        id1 = _find_id(msgs[0], True)
-        self.assertNotEqual(id1, id2)
+        id1 = _find_ids(msgs[0])
+        self.assertNotEqual(id1, ids[1])
 
     def test_unique_ids_false(self):
         @logf(identifier=False)

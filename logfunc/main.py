@@ -194,6 +194,7 @@ def _msg_exit(
         and not func_name.startswith("__init__")
     ):
         return
+
     if cfg.level is not None and cfg.logf_log_level is not None:
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
