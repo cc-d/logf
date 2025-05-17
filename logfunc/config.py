@@ -52,7 +52,7 @@ class Cfg:
     @classmethod
     def _eval_evar(cls, name: str, val: str, evdef: Any) -> Any:
         if isinstance(evdef, bool):
-            return False if val.lower() == 'false' else True
+            return val.lower() != 'false'
         elif name == 'LOGF_USE_LOGGER':
             return getLogger(val) if val else None
         elif name == 'LOGF_MAX_STR_LEN':
