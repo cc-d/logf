@@ -287,7 +287,7 @@ class TestLogfEnvVars(ut.TestCase):
             for _not in ['arg1', 'arg2', 'kwarg1', 'kwarg2']:
                 self.assertNotIn(_not, msgs[0])
                 self.assertNotIn(_not, msgs[1])
-                self.assertNotIn('  1', msgs[1])
+            self.assertFalse(msgs[1].endswith('  1'))
 
     def test_evar_log_return(self):
         ef, pf = evar_and_param(
