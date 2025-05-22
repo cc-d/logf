@@ -234,10 +234,11 @@ class TestLogfEnvVars(ut.TestCase):
 
             msg_enter = mock_print.call_args_list[0][0][0]
             msg_exit = mock_print.call_args_list[1][0][0]
-            print(msg_enter, msg_exit)
+
             self.assertEqual(mock_print.call_count, 2)
             self.assertTrue(msg_exit.endswith('1'))
             self.assertIn('f()', msg_exit)
+            print([x.replace(' ', '_') for x in  (msg_exit, msg_enter)])
 
     def test_evar_single_msg(self):
         ef, pf = evar_and_param('LOGF_SINGLE_MSG', 'True', 'single_msg', True)
@@ -674,6 +675,30 @@ class TestLogfRegression(ClearEnvTestCase):
                 f()
         self.assertNotIn('__TEST__', ' '.join(msgs.output))
 
+    def test_end_space(self):
+        with self.assertLogs(level=logging.DEBUG) as msgs:
+            logf(level=logging.DEBUG)(lambda x: 1)(1)
+            print(msgs)
+            [self.assertTrue(x[-1] != ' ') for x in msgs.output]
+
+    def test_end_space_print(self):
+        with patch('builtins.print', MagicMock()) as pmock:
+            logf(use_print=True)(lambda x: 1)(1)
+            for pcall in pmock.call_args[0]:
+  
+                logging.warning(str(pcall))
+                self.assertTrue(str(pcall)[-1] != ' ')
+        
+    def test_end_space_enter(self):
+        with patch('builtins.print', MagicMock()) as pmock:
+            logf(use_print=True)(lambda x: x)(11111 * 2222)
+            self.assertFalse(str(pmock.call_args[0][0]).endswith(' '))
+
+    
+        with patch('builtins.print', MagicMock()) as pmock:
+            logf(use_print=True)(lambda x: x)(' @@@')
+            self.assertFalse(str(pmock.call_args[0][0]).endswith(' '))
+        
 
 class LogTestCase(ut.TestCase):
     def __init__(self, *args, **kwargs):

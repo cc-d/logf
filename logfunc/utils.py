@@ -13,7 +13,7 @@ def build_argstr(
 ) -> str:
     """formats the args and kwargs into a string for logging"""
     if args:
-        argskwargs = '(%s) ' % ', '.join(
+        argskwargs = '(%s)' % ', '.join(
             [trunc_str(a, max_length) for a in args]
         )
     else:

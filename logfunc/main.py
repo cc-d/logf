@@ -111,7 +111,7 @@ def logf(
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:  # type: ignore
                 _id = (
-                    _get_id() if cfg.identifier and not cfg.single else 'None'
+                    _get_id() if cfg.identifier and not cfg.single else None 
                 )
 
                 _start = aio.get_event_loop().time() if cfg.log_time else None
@@ -170,6 +170,9 @@ def _msg_enter(
     logmsg = MSG_FORMATS.enter.format(
         id_func_name=id_func_name, args_str=args_str
     )
+
+    logmsg = logmsg.rstrip(' ')
+
     if cfg.use_print:
         print(logmsg)
     else:
@@ -199,6 +202,8 @@ def _msg_exit(
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
 
+
+
     logmsg = msgs.exit_msg(
         cfg.single,
         func_name,
@@ -207,6 +212,8 @@ def _msg_exit(
         trunc_str(result, cfg.max_str) if cfg.log_return else "",
         func_id=id if cfg.identifier and id is not None else "",
     )
+
+    
 
     if cfg.use_print:
         print(logmsg)
@@ -239,8 +246,10 @@ def _enter(
             _exclude_self = True
 
     argstr = build_argstr(
-        args if not _exclude_self else args[1:], kwargs, cfg.max_str
+        args if not _exclude_self else args, kwargs, cfg.max_str
     )
+
+
 
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)
