@@ -100,7 +100,7 @@ class CHARS:
 ENTER_MSG = CHARS.ENTER + ' {id_func_name}() {args_str}'
 EXIT_MSG_NO_RETURN = CHARS.EXIT + ' {id_func_name}() {exec_time} '
 EXIT_MSG = CHARS.EXIT + ' {id_func_name}() {exec_time} {result}'
-SINGLE_MSG = CHARS.SINGLE + '{func_name}() {exec_time} {args_str} | {result}'
+SINGLE_MSG = CHARS.SINGLE + ' {func_name}() {exec_time} {args_str} | {result}'
 ENTER_MSG_NO_ARGS = CHARS.ENTER + ' {id_func_name}()'
 
 
