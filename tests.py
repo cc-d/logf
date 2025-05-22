@@ -29,10 +29,9 @@ from logfunc.main import (
     time_str,
 )
 from logfunc.utils import TIME_TABLE
-from logfunc.config import CHARS
+from logfunc.config import CHARS, _def
 
 
-@logf(use_print=True)
 def _find_ids(msg: Union[str, list, object]) -> Tuple[str]:
     """if expected, asserts id in msg, else assert not in msg"""
     if hasattr(msg, "records"):
@@ -306,12 +305,13 @@ class TestLogfEnvVars(ut.TestCase):
             'LOGF_LOG_EXEC_TIME', 'False', 'log_exec_time', False
         )
 
-        for f in [ef(), pf()]:
-            with self.assertLogs(level=logging.DEBUG) as msgs:
-                f()
-            msgs = msgs.output
-            print(msgs)
-            self.assertNotIn('0.', msgs[0])
+        time_ret = '0.005ms'
+        with patch('logfunc.main.time_str', MagicMock(return_value=time_ret)):
+            for f in [ef(), pf()]:
+                with self.assertLogs(level=logging.DEBUG) as msgs:
+                    f()
+                msgs = msgs.output
+                self.assertNotIn(time_ret, msgs)
 
     def test_evar_use_logger_str(self):
         os.environ['LOGF_USE_LOGGER'] = 'logf'
@@ -407,6 +407,22 @@ class TestLogfEnvVars(ut.TestCase):
 
     def test_logf_builtin(self):
         logf()(print('hi'))
+
+
+class TestLogfConfig(ClearEnvTestCase):
+    def test_refresh(self):
+
+        with patch('logfunc.main.Cfg.reload', MagicMock()) as r:
+            logf(refresh=True)(lambda x: 1)
+            r.assert_called()
+
+    def test_max_str_none(self):
+
+        with patch('logfunc.main._def.MAX_STR_LEN', 5), patch(
+            'logfunc.main.Cfg._eval_evar', MagicMock()
+        ) as evv:
+            c = Cfg()
+            c.reload()
 
 
 class TestLogfParams(ut.TestCase):

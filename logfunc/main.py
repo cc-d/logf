@@ -199,9 +199,6 @@ def _msg_exit(
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
 
-    if not end_time and cfg.log_time:
-        end_time = "0.000s"
-
     logmsg = msgs.exit_msg(
         cfg.single,
         func_name,
