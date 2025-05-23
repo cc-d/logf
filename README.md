@@ -84,33 +84,51 @@ See the following output for an example of how an env var will affect `@logf()` 
 With `LOGF_USE_PRINT=True`:
 
 ```
-mym2@Carys-MacBook-Pro logf % gitpoll ~/test
-Running once...
--> __init__()[CwKVbK] | (<CmdExec >, 'git rev-parse --abbrev-ref HEAD') {}
-<- __init__()[CwKVbK] 0.0048s | None
--> __init__()[BIimGf] | (<CmdExec >, 'git config --get branch.test.remote') {}
-<- __init__()[BIimGf] 0.0040s | None
--> __init__()[ED1XW0] | (<CmdExec >, 'git config --get branch.test.merge') {}
-<- __init__()[ED1XW0] 0.0039s | None
--> __init__()[dsPXjJ] | (<CmdExec >, 'git rev-parse refs/remotes//') {}
-<- __init__()[dsPXjJ] 0.0044s | None
--> __init__()[5rkgc9] | (<CmdExec >, 'git rev-parse HEAD') {}
-<- __init__()[5rkgc9] 0.0037s | None
--> __init__()[GDti62] | (<CmdExec >, 'git fetch') {}
-<- __init__()[GDti62] 1.1160s | None
+> con_time() (<function rec_self_func at 0x104f3a980>)
+> rec_self_func() 
+> rec_self_func() (<function rec_self_func at 0x104f3a980>, 1, 5)
+< rec_self_func() 8.11us <function rec_self_func at 0x104f3a980>
+< rec_self_func() 55.07us <function rec_self_func at 0x104f3a980>
+< con_time() 0.454ms <__main__.con_time object at 0x105bc9d30>
+> con_time() (<function rec_self_func at 0x104f3a980>, False)
+> rec_self_func() (False)
+> rec_self_func() (False, 1, 5)
+< rec_self_func() 5.96us False
+< con_time() 0.106ms <__main__.con_time object at 0x105be4690>
+
+> wrap() 
+> asynctest() 
+< asynctest() 60.25us 1
+< wrap() 4.232ms 1
 ```
 
 With `LOGF_SINGLE_MSG=True`:
 
 ```
-mym2@Carys-MacBook-Pro logf % gitpoll ~/test
-Running once...
-__init__() 0.0050s | (<CmdExec >, 'git rev-parse --abbrev-ref HEAD') {} | None
-__init__() 0.0041s | (<CmdExec >, 'git config --get branch.test.remote') {} | None
-__init__() 0.0041s | (<CmdExec >, 'git config --get branch.test.merge') {} | None
-__init__() 0.0041s | (<CmdExec >, 'git rev-parse refs/remotes//') {} | None
-__init__() 0.0038s | (<CmdExec >, 'git rev-parse HEAD') {} | None
-__init__() 1.0993s | (<CmdExec >, 'git fetch') {} | None
+- rec_self_func() 1.91us (<function rec_self_func at 0x1044c2980>, 5, 5) | <function rec_self_func at 0x1044c2980>
+- rec_self_func() 72.00us (<function rec_self_func at 0x1044c2980>, 4, 5) | <function rec_self_func at 0x1044c2980>
+- rec_self_func() 88.21us (<function rec_self_func at 0x1044c2980>, 3, 5) | <function rec_self_func at 0x1044c2980>
+- rec_self_func() 97.99us (<function rec_self_func at 0x1044c2980>, 2, 5) | <function rec_self_func at 0x1044c2980>
+- rec_self_func() 0.110ms (<function rec_self_func at 0x1044c2980>, 1, 5) | <function rec_self_func at 0x1044c2980>
+- rec_self_func() 0.118ms  | <function rec_self_func at 0x1044c2980>
+- con_time() 0.143ms (<function rec_self_func at 0x1044c2980>) | <__main__.con_time object at 0x104b61d30>
+- rec_self_func() 1.91us (False, 5, 5) | False
+- rec_self_func() 10.01us (False, 4, 5) | False
+- rec_self_func() 17.17us (False, 3, 5) | False
+- rec_self_func() 21.93us (False, 2, 5) | False
+- rec_self_func() 27.89us (False, 1, 5) | False
+- rec_self_func() 34.09us (False) | False
+```
+
+With `LOGF_IDENTIFIER=True`:
+
+```
+> [6s_fGj] rec_self_func() (False)
+> [gn2LsO] rec_self_func() (False, 1, 2)
+> [-vzlsf] rec_self_func() (False, 2, 2)
+< [-vzlsf] rec_self_func() 5.96us False
+< [gn2LsO] rec_self_func() 26.94us False
+< [6s_fGj] rec_self_func() 46.25us False
 ```
 
 ### Real-world Examples
@@ -145,21 +163,22 @@ Run `pytest tests.py` to run the tests.
 Output should look like this:
 
 ```sh
----------- coverage: platform darwin, python 3.11.5-final-0 ----------
+coverage: platform darwin, python 3.13.2-final-0
+
 Name                  Stmts   Miss  Cover   Missing
 ---------------------------------------------------
 logfunc/__init__.py       2      0   100%
-logfunc/config.py        59      0   100%
-logfunc/defaults.py       2      0   100%
-logfunc/main.py          69      0   100%
-logfunc/msgs.py           8      0   100%
-logfunc/utils.py         35      0   100%
+logfunc/config.py        53      0   100%
+logfunc/defaults.py      14      0   100%
+logfunc/main.py          73      0   100%
+logfunc/msgs.py          10      0   100%
+logfunc/utils.py         57      0   100%
 logfunc/version.py        1      0   100%
 ---------------------------------------------------
-TOTAL                   176      0   100%
+TOTAL                   210      0   100%
 
-
-==================================== 25 passed in 0.06s
+40 passed, 3 warnings in 0.15s 
+25 passed in 0.06s
 ```
 
 You can also just run the `tests.py` file directly.
