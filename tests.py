@@ -416,7 +416,7 @@ class TestLogfConfig(ClearEnvTestCase):
 
         with patch('logfunc.main.Cfg.reload', MagicMock()) as r:
             logf(refresh=True)(lambda x: 1)
-            r.assert_called()
+            self.assertTrue(r.called)
 
     def test_max_str_none(self):
 
