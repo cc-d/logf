@@ -202,8 +202,6 @@ def _msg_exit(
         if loglevel_int(cfg.level) < loglevel_int(cfg.logf_log_level):
             return
 
-
-
     logmsg = msgs.exit_msg(
         cfg.single,
         func_name,
@@ -212,8 +210,6 @@ def _msg_exit(
         trunc_str(result, cfg.max_str) if cfg.log_return else "",
         func_id=id if cfg.identifier and id is not None else "",
     )
-
-    
 
     if cfg.use_print:
         print(logmsg)
