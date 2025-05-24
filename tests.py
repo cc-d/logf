@@ -123,7 +123,7 @@ def evar_and_param(
     logf_param_value,
     ret=1,
     *args,
-    **kwargs,
+    **kwargs
 ):
 
     def wrapper_env():
