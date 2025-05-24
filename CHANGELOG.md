@@ -1,6 +1,12 @@
 ## 3.0.0
 
+Changed formatting to be more awk friendly
 
+Changed initial characters to `>` entry `<` exit `-` combined
+
+`identifier` is now `False` by default
+
+Added several new tests, improved others.
 
 ## 2.9.1
 
