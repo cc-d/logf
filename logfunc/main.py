@@ -155,7 +155,7 @@ def logf(
 
 
 def _msg_enter(
-    func_name: str, args_str: str, cfg: Cfg, id: str | None
+    func_name: str, args_str: str, cfg: Cfg, id: U[str, None],
 ) -> None:
     """Handles logging of the enter message for decorated functions."""
     if cfg.level is not None and cfg.logf_log_level is not None:
