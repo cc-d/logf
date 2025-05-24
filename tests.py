@@ -43,7 +43,7 @@ def _find_ids(msg: Union[str, list, object]) -> Tuple[str]:
         msg = '\n'.join(msg)
 
     regchars = ''.join(a.strip() for a in CHARS.__values__())
-    ids_re = f'[{regchars}] [[a-zA-Z-_0-9]+]'
+    ids_re = '[{}] [[a-zA-Z-_0-9]+]'.format(regchars)
     ids = tuple(re.findall(ids_re, msg))
     return ids
 
