@@ -2,17 +2,20 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+
 [project]
 name = "logfunc"
 version = '3.0.0'
 description = "An EASY TO USE function decorator for advanced logging of function execution, including arguments, return values, and execution time."
 authors = [{name = "Cary Carter", email = "ccarterdev@gmail.com"}]
-license = {file = "LICENSE"}
 readme = "README.md"
+
+
+license-files = [ 'LICENSE' ]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
@@ -31,6 +34,7 @@ Changelog = "https://github.com/cc-d/logf/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 packages = ["logfunc"]
+
 
 [project.optional-dependencies]
 dev = [
