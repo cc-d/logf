@@ -28,6 +28,7 @@ jobs:
           - 'python:3.10.14-slim'
           - 'python:3.11.9-slim'
           - 'python:3.12.3-slim'
+          - 'python:3.13.3-slim'
 
     container:
       image: ${{ matrix.image }}
