@@ -32,6 +32,43 @@ from logfunc.utils import TIME_TABLE
 from logfunc.config import CHARS, _def
 
 
+class Node:
+    def __init__(self, value=None, branches=5, depth=0, max_depth=10):
+        self.value = value
+        self.branches = []
+        self.depth = depth
+        self.max_depth = max_depth
+        if depth < max_depth:
+            for i in range(branches):
+                self.branches.append(
+                    Node(
+                        value=f"{value}.{i}" if value else str(i),
+                        branches=branches,
+                        depth=depth + 1,
+                        max_depth=max_depth,
+                    )
+                )
+
+    def iterate(self):
+        stack = [(self, "")]
+        while stack:
+            node, prefix = stack.pop()
+            print(prefix + (node.value if node.value else "root"))
+            for child in reversed(node.branches):
+                stack.append(
+                    (child, prefix + (node.value + "." if node.value else ""))
+                )
+        setattr(self, 'st', str(stack))
+        print(self.st)
+
+
+n = Node(depth=0, max_depth=7, branches=4)
+
+import codecs
+
+log_object(codecs)
+
+
 def _find_ids(msg: Union[str, list, object]) -> Tuple[str]:
     """if expected, asserts id in msg, else assert not in msg"""
     if hasattr(msg, "records"):
@@ -123,7 +160,7 @@ def evar_and_param(
     logf_param_value,
     ret=1,
     *args,
-    **kwargs
+    **kwargs,
 ):
 
     def wrapper_env():
@@ -238,7 +275,7 @@ class TestLogfEnvVars(ut.TestCase):
             self.assertEqual(mock_print.call_count, 2)
             self.assertTrue(msg_exit.endswith('1'))
             self.assertIn('f()', msg_exit)
-            print([x.replace(' ', '_') for x in  (msg_exit, msg_enter)])
+            print([x.replace(' ', '_') for x in (msg_exit, msg_enter)])
 
     def test_evar_single_msg(self):
         ef, pf = evar_and_param('LOGF_SINGLE_MSG', 'True', 'single_msg', True)
@@ -685,20 +722,19 @@ class TestLogfRegression(ClearEnvTestCase):
         with patch('builtins.print', MagicMock()) as pmock:
             logf(use_print=True)(lambda x: 1)(1)
             for pcall in pmock.call_args[0]:
-  
+
                 logging.warning(str(pcall))
                 self.assertTrue(str(pcall)[-1] != ' ')
-        
+
     def test_end_space_enter(self):
         with patch('builtins.print', MagicMock()) as pmock:
             logf(use_print=True)(lambda x: x)(11111 * 2222)
             self.assertFalse(str(pmock.call_args[0][0]).endswith(' '))
 
-    
         with patch('builtins.print', MagicMock()) as pmock:
             logf(use_print=True)(lambda x: x)(' @@@')
             self.assertFalse(str(pmock.call_args[0][0]).endswith(' '))
-        
+
 
 class LogTestCase(ut.TestCase):
     def __init__(self, *args, **kwargs):
