@@ -4,7 +4,11 @@ from typing import (
     Generator as Gen,
     Union as U,
     Optional as Opt,
+    List,
 )
+
+
+from random import choice, randint
 
 
 def log_object(
@@ -19,69 +23,46 @@ def log_object(
 
     -> Union[tuple[Any, ...], Generator[Any, None, None]]: Extracted objects as tuple or generator
     """
-    from logfunc import _def_logf
-
-    def _get_objs(obj: Any, recursive_logf: bool = False):
-
-        dir = _def_logf(dir)
-        getattr = _def_logf(getattr)
-        names = dir(obj)
-        log_object(obj)
-        while names:
-            try:
-                new_obj = getattr(obj, names.pop(0))
-
-            except:
-                continue
-
-            try:
-                setattr('__prop__obj__', new_obj)
-            except Exception as e:
-                pass
-
-            if callable(_get_objs):
-                new_obj = _def_logf(new_obj)
-            yield new_obj
-
-    objs = [log_object(f, ret=True) for f in _get_objs(obj)]
-
-    if gen is False:
-        return tuple(_get_objs(obj))
-    return (_ for _ in _get_objs(obj))
 
 
 class Node:
-    def __init__(self, value=None, branches=5, depth=0, max_depth=10):
-        self.value = value
-        self.branches = []
-        self.depth = depth
-        self.max_depth = max_depth
-        if depth < max_depth:
-            for i in range(branches):
-                self.branches.append(
-                    Node(
-                        value=f"{value}.{i}" if value else str(i),
-                        branches=branches,
-                        depth=depth + 1,
-                        max_depth=max_depth,
-                    )
-                )
+    children: List['Node']
+    parents: List['Node']
 
-    def iterate(self):
-        stack = [(self, "")]
-        while stack:
-            node, prefix = stack.pop()
-            print(prefix + (node.value if node.value else "root"))
-            for child in reversed(node.branches):
-                stack.append(
-                    (child, prefix + (node.value + "." if node.value else ""))
-                )
-        setattr(self, 'st', str(stack))
-        print(self.st)
+    def __init__(self, n):
+        self.n = n
+        self.children = []
+        self.parents = []
+
+    def __repr__(self):
+        return '<{} {} {}>'.format(
+            self.parents if self.parents else '',
+            self.n,
+            self.children if self.children else '',
+        )
 
 
-log_object(n)
+class NodeWeb:
+    nodes: List[Node]
 
-n = Node(depth=0, max_depth=7, branches=4)
+    def __init__(self, nodes=100):
+        self.nodes = []
 
-print(1)
+        for i in range(nodes):
+            node = Node(i)
+            if i == 0:
+                self.nodes = [Node(i)]
+                continue
+
+            n2 = choice(self.nodes)
+            if i % 2 == 0:
+                n2.children.append(node)
+                node.parents.append(n2)
+            else:
+                n2.parents.append(node)
+                node.children.append(n2)
+
+            self.nodes.append(node)
+
+    def __repr__(self):
+        return f"<NodeWeb {' '.join(str(n) for n in self.nodes)}>"
