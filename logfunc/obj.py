@@ -1,35 +1,53 @@
-from typing import Any
-from logfunc import logf
+from typing import (
+    Any,
+    Iterable as Iter,
+    Generator as Gen,
+    Union as U,
+    Optional as Opt,
+)
 
 
-@logf()
-def _get_objs(obj: Any):
+def log_object(
+    obj: Any, gen: bool = False, recursive_logf: bool = False
+) -> U[Iter[Any], Any]:
+    """Return all accessible objects from a given object.
 
-    cur_objs = [obj]
-    new_objs = [set(), []]
-    while cur_objs:
-        obj = cur_objs.pop(0)
+    ~obj: Any object which will be recursively iterated over, with all
+        sub-objects also being logged.
 
-        props = dir(obj)
+    ~gen: If True, returns a generator; if False, returns a tuple
 
-        while props:
+    -> Union[tuple[Any, ...], Generator[Any, None, None]]: Extracted objects as tuple or generator
+    """
+    from logfunc import _def_logf
+
+    def _get_objs(obj: Any, recursive_logf: bool = False):
+
+        dir = _def_logf(dir)
+        getattr = _def_logf(getattr)
+        names = dir(obj)
+        log_object(obj)
+        while names:
             try:
-                new_obj = getattr(obj, props.pop(0))
-                if new_obj:  # not in cur_objs:
-                    if new_obj:  # not in new_objs:
-                        new_objs[0].add(new_obj)
-                        new_objs[1].append(new_obj)
-                        continue
-                raise Exception('REEEEEEEEEEEEEEEEEEEEE')
+                new_obj = getattr(obj, names.pop(0))
+
+            except:
+                continue
+
+            try:
+                setattr('__prop__obj__', new_obj)
             except Exception as e:
-                print('Error in new obj from prop')
+                pass
 
-    return new_objs
+            if callable(_get_objs):
+                new_obj = _def_logf(new_obj)
+            yield new_obj
 
+    objs = [log_object(f, ret=True) for f in _get_objs(obj)]
 
-@logf()
-def log_object(obj: Any):
-    gen = _get_objs(obj)
+    if gen is False:
+        return tuple(_get_objs(obj))
+    return (_ for _ in _get_objs(obj))
 
 
 class Node:
@@ -62,8 +80,8 @@ class Node:
         print(self.st)
 
 
+log_object(n)
+
 n = Node(depth=0, max_depth=7, branches=4)
 
-import codecs
-
-log_object(codecs)
+print(1)

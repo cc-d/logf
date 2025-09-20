@@ -110,9 +110,7 @@ def logf(
 
             @wraps(func)
             async def decorator(*args, **kwargs) -> Any:  # type: ignore
-                _id = (
-                    _get_id() if cfg.identifier and not cfg.single else None 
-                )
+                _id = _get_id() if cfg.identifier and not cfg.single else None
 
                 _start = aio.get_event_loop().time() if cfg.log_time else None
                 argstr = _enter(fname, args, kwargs, cfg, _id)
@@ -155,7 +153,7 @@ def logf(
 
 
 def _msg_enter(
-    func_name: str, args_str: str, cfg: Cfg, id: U[str, None],
+    func_name: str, args_str: str, cfg: Cfg, id: U[str, None]
 ) -> None:
     """Handles logging of the enter message for decorated functions."""
     if cfg.level is not None and cfg.logf_log_level is not None:
@@ -244,8 +242,6 @@ def _enter(
     argstr = build_argstr(
         args if not _exclude_self else args, kwargs, cfg.max_str
     )
-
-
 
     if not cfg.single:
         _msg_enter(func_name, argstr, cfg, id)
