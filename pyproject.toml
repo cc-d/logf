@@ -37,7 +37,8 @@ packages = ["logfunc"]
 
 [tool.pytest.ini_options]
 minversion = "6"
-adopts = "-ra -s -vv -x --log-cli-level=DEBUG --cov=logfunc"
+addopts = "-ra -s -vv -x --log-cli-level=DEBUG --cov=logfunc"
+testpaths = ["tests"]
 
 [project.optional-dependencies]
 dev = [
@@ -49,4 +50,5 @@ dev = [
     "pytest-xdist<3.6.2",
     "trio<=0.31.0",
     "anyio<4.10.0",
+    "pytest-trio-0.8.0",
 ]

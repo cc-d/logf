@@ -1,97 +1,73 @@
-# complex_async_test.py
-from .conftest import sys
+import pytest
 import trio
-import anyio
-import random
-import socket
-import asyncio
-import subprocess
-from contextlib import asynccontextmanager
+from async_tasks import (
+    http_simulation,
+    tcp_simulation,
+    file_simulation,
+    subprocess_simulation,
+    random_task,
+    handle_task,
+    nested_tasks,
+    main,
+)
 
 
-async def http_simulation(name: str):
-    await trio.sleep(random.uniform(0.01, 0.5))
-    if random.random() < 0.1:
-        raise RuntimeError(f"{name} failed during HTTP request")
-    return f"{name}-http-response"
+@pytest.mark.trio
+async def test_http_simulation():
+    result = await http_simulation("test_http")
+    assert "http-response" in result
 
 
-async def tcp_simulation(name: str):
-    await trio.sleep(random.uniform(0.01, 0.5))
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(0.2)
-        sock.connect(("127.0.0.1", 9999))  # may fail if no server
-    except Exception:
-        return f"{name}-tcp-failure"
-    finally:
-        sock.close()
-    return f"{name}-tcp-success"
+@pytest.mark.trio
+async def test_tcp_simulation(monkeypatch):
+    class DummySocket:
+        def settimeout(self, t): ...
+        def connect(self, addr):
+            raise OSError
 
+        def close(self): ...
 
-async def file_simulation(name: str):
-    await trio.sleep(random.uniform(0.01, 0.2))
-    try:
-        with open(f"/tmp/{name}.txt", "w") as f:
-            f.write("x" * random.randint(1, 100))
-    except Exception:
-        return f"{name}-file-failure"
-    return f"{name}-file-success"
-
-
-async def subprocess_simulation(name: str):
-    await trio.sleep(random.uniform(0.01, 0.2))
-    try:
-        result = subprocess.run(
-            ["echo", name], capture_output=True, text=True, timeout=0.1
-        )
-        return result.stdout.strip()
-    except subprocess.TimeoutExpired:
-        return f"{name}-subproc-timeout"
-
-
-async def random_task(name: str):
-    choice = random.choice(
-        [
-            http_simulation,
-            tcp_simulation,
-            file_simulation,
-            subprocess_simulation,
-        ]
+    monkeypatch.setattr(
+        "async_tasks.socket.socket", lambda *a, **k: DummySocket()
     )
-    return await choice(name)
+    result = await tcp_simulation("test_tcp")
+    assert "tcp-failure" in result
 
 
-async def nested_tasks(n: int, depth=0):
-    async with trio.open_nursery() as nursery:
-        for i in range(n):
-            task_name = f"task-{depth}-{i}"
-            nursery.start_soon(handle_task, task_name, depth)
+@pytest.mark.trio
+async def test_file_simulation(tmp_path):
+    result = await file_simulation("test_file", base_path=tmp_path)
+    assert "file-success" in result
+    # optionally check file exists
+    assert (tmp_path / "test_file.txt").exists()
 
 
-async def handle_task(name: str, depth: int):
-    try:
-        # simulate layered calls
-        result = await random_task(name)
-        print(f"{name} result: {result}")
-        # maybe spawn a nested task group
-        if depth < 2 and random.random() < 0.5:
-            await nested_tasks(random.randint(1, 3), depth=depth + 1)
-        # simulate cancellation edge
-        if random.random() < 0.05:
-            raise trio.Cancelled
-    except trio.Cancelled:
-        print(f"{name} was cancelled")
-    except Exception as e:
-        print(f"{name} exception: {e}")
+@pytest.mark.trio
+async def test_subprocess_simulation(monkeypatch):
+    monkeypatch.setattr(
+        "async_tasks.subprocess.run",
+        lambda *a, **k: type("R", (), {"stdout": "ok"})(),
+    )
+    result = await subprocess_simulation("test_subproc")
+    assert result == "ok"
 
 
-async def main():
-    async with trio.open_nursery() as nursery:
-        for i in range(5):
-            nursery.start_soon(handle_task, f"root-{i}", 0)
+@pytest.mark.trio
+async def test_random_task_runs():
+    result = await random_task("rand")
+    assert isinstance(result, str)
 
 
-if __name__ == "__main__":
-    trio.run(main)
-trio
+@pytest.mark.trio
+async def test_handle_task_runs_without_error():
+    await handle_task("task1", 0)
+
+
+@pytest.mark.trio
+async def test_nested_tasks_runs():
+    await nested_tasks(2)
+
+
+@pytest.mark.trio
+async def test_main_runs():
+    await main()
