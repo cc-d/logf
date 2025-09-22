@@ -6,4 +6,4 @@ pytest-metadata<3.2
 pytest-xdist<3.6.2
 trio<=0.31.0
 anyio<4.10.0
-pytest-trio-0.8.0==0.8.0
+pytest-trio==0.8.0

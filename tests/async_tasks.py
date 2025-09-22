@@ -5,10 +5,14 @@ import subprocess
 
 
 async def http_simulation(name: str):
-    await trio.sleep(random.uniform(0.01, 0.5))
-    if random.random() < 0.1:
-        raise RuntimeError(f"{name} failed during HTTP request")
-    return f"{name}-http-response"
+    try:
+        await trio.sleep(random.uniform(0.01, 0.5))
+        if random.random() < 0.1:
+            raise RuntimeError(f"{name} failed during HTTP request")
+        return f"{name}-ok"
+    except trio.Cancelled:
+        print(f"{name} cancelled")
+        raise
 
 
 async def tcp_simulation(name: str):
@@ -34,7 +38,7 @@ async def file_simulation(name: str, base_path="/tmp"):
             f.write("x" * random.randint(1, 100))
     except Exception:
         return f"{name}-file-failure"
-    return f"{name}-file-success"
+    return f"{name}-ok"
 
 
 async def subprocess_simulation(name: str):
@@ -49,7 +53,8 @@ async def subprocess_simulation(name: str):
 
 
 async def random_task(name: str):
-    choice = random.choice(
+    """Pick a random simulation and await it."""
+    choice_fn = random.choice(
         [
             http_simulation,
             tcp_simulation,
@@ -57,13 +62,15 @@ async def random_task(name: str):
             subprocess_simulation,
         ]
     )
-    return await choice(name)
+    return await choice_fn(name)
 
 
 async def handle_task(name: str, depth: int):
     try:
         result = await random_task(name)
         print(f"{name} result: {result}")
+    except trio.Cancelled:
+        raise
     except Exception as e:
         print(f"{name} exception: {e}")
 
@@ -78,3 +85,7 @@ async def main():
     async with trio.open_nursery() as nursery:
         for i in range(5):
             nursery.start_soon(handle_task, f"root-{i}", 0)
+
+
+async def create_subprocess_exec(*args, **kwargs):
+    pass

@@ -7,7 +7,8 @@
   "python.analysis.extraPaths": ["./venv/lib/python3.13/site-packages"],
   "python.testing.pytestArgs": [
     "tests",
-    "--cov=logfunc --cov-report=term-missing"
+    "--cov=logfunc",
+    "--cov-report=term-missing"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true

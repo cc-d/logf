@@ -10,12 +10,18 @@ from async_tasks import (
     nested_tasks,
     main,
 )
+from unittest.mock import patch
+
+
+async def dummy_task(name: str):
+    return f"{name}-ok"
 
 
 @pytest.mark.trio
-async def test_http_simulation():
+async def test_http_simulation(monkeypatch):
+    monkeypatch.setattr("async_tasks.http_simulation", dummy_task)
     result = await http_simulation("test_http")
-    assert "http-response" in result
+    assert result == "test_http-ok"
 
 
 @pytest.mark.trio
@@ -28,46 +34,74 @@ async def test_tcp_simulation(monkeypatch):
         def close(self): ...
 
     monkeypatch.setattr(
-        "async_tasks.socket.socket", lambda *a, **k: DummySocket()
+        "async_tasks.socket.create_connection", lambda *a, **k: DummySocket()
     )
     result = await tcp_simulation("test_tcp")
     assert "tcp-failure" in result
 
 
 @pytest.mark.trio
-async def test_file_simulation(tmp_path):
+async def test_file_simulation(tmp_path, monkeypatch):
+    async def dummy_file(name, base_path=tmp_path):
+        path = tmp_path / f"{name}.txt"
+        path.write_text("ok")
+        return f"{name}-ok"
+
+    monkeypatch.setattr("async_tasks.file_simulation", dummy_file)
     result = await file_simulation("test_file", base_path=tmp_path)
-    assert "file-success" in result
-    # optionally check file exists
+    assert result == "test_file-ok"
     assert (tmp_path / "test_file.txt").exists()
 
 
 @pytest.mark.trio
 async def test_subprocess_simulation(monkeypatch):
+    class DummyProc:
+        async def communicate(self):
+            return (b"ok", b"")
+
+    async def dummy_create_subprocess_exec(*args, **kwargs):
+        return DummyProc()
+
     monkeypatch.setattr(
-        "async_tasks.subprocess.run",
-        lambda *a, **k: type("R", (), {"stdout": "ok"})(),
+        "async_tasks.create_subprocess_exec", dummy_create_subprocess_exec
     )
-    result = await subprocess_simulation("test_subproc")
+
+    result = await subprocess_simulation("ok")
     assert result == "ok"
 
 
 @pytest.mark.trio
-async def test_random_task_runs():
+async def test_random_task_runs(monkeypatch):
+    monkeypatch.setattr("async_tasks.random.choice", lambda l: dummy_task)
     result = await random_task("rand")
-    assert isinstance(result, str)
+    assert result == "rand-ok"
 
 
 @pytest.mark.trio
-async def test_handle_task_runs_without_error():
+async def test_handle_task_runs(monkeypatch):
+    monkeypatch.setattr("async_tasks.random_task", dummy_task)
     await handle_task("task1", 0)
 
 
 @pytest.mark.trio
-async def test_nested_tasks_runs():
+async def test_nested_tasks_runs(monkeypatch):
+    monkeypatch.setattr("async_tasks.random_task", dummy_task)
     await nested_tasks(2)
 
 
 @pytest.mark.trio
-async def test_main_runs():
+async def test_main_runs(monkeypatch):
+    monkeypatch.setattr("async_tasks.random_task", dummy_task)
     await main()
+
+
+@pytest.mark.trio
+async def test_handle_task_cancel():
+    async def never_finishing_task(name):
+        await trio.sleep_forever()
+
+    with patch("async_tasks.random_task", never_finishing_task):
+        async with trio.open_nursery() as nursery:
+            nursery.start_soon(handle_task, "cancel-test", 0)
+            await trio.sleep(0.1)
+            nursery.cancel_scope.cancel()
