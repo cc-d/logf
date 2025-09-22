@@ -1,9 +1,11 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
 
-    },
-    "python.analysis.extraPaths": [
-        "./venv/lib/python3.11/site-packages"
-    ]
+  "python.analysis.extraPaths": ["./venv/lib/python3.13/site-packages"],
+  "python.testing.pytestArgs": [".", "--cov=logfunc --cov-report=term-missing"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

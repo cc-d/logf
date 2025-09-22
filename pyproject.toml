@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "logfunc"
-version = '3.0.0'
+version = '3.1.0'
 description = "An EASY TO USE function decorator for advanced logging of function execution, including arguments, return values, and execution time."
 authors = [{name = "Cary Carter", email = "ccarterdev@gmail.com"}]
 readme = "README.md"
@@ -35,6 +35,9 @@ Changelog = "https://github.com/cc-d/logf/blob/main/CHANGELOG.md"
 [tool.setuptools]
 packages = ["logfunc"]
 
+[tool.pytest.ini_options]
+minversion = "6"
+adopts = "-ra -s -vv -x --log-cli-level=DEBUG --cov=logfunc"
 
 [project.optional-dependencies]
 dev = [
@@ -44,4 +47,6 @@ dev = [
     "pytest-html<4.1.1",
     "pytest-metadata<3.2",
     "pytest-xdist<3.6.2",
+    "trio<=0.31.0",
+    "anyio<4.10.0",
 ]

@@ -7,14 +7,10 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-        "tests.py",
-        "-s",
-        "-vv",
-        "-x",
-        "--log-cli-level=DEBUG",
-        "--cov=logfunc"
+        "tests" // could also be "tests/test_complex_async.py"
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "justMyCode": false
     }
   ]
 }

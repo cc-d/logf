@@ -8,22 +8,7 @@ from typing import (
     Callable as Call,
 )
 
-
 from random import choice, randint
-
-
-def log_object(
-    obj: Any, gen: bool = False, recursive: bool = False
-) -> U[Iter[Any], Any]:
-    """Return all accessible objects from a given object.
-
-    ~obj: Any object which will be recursively iterated over, with all
-        sub-objects also being logged.
-
-    ~gen: If True, returns a generator; if False, returns a tuple
-
-    -> Union[tuple[Any, ...], Generator[Any, None, None]]: Extracted objects as tuple or generator
-    """
 
 
 class Node:

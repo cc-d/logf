@@ -1,3 +1,10 @@
+## 3.1.0
+
+Improved async function support, respecially logged return values
+
+Added `log_object` method which enables `logf` to be applied recursively to
+all callables downstream an object's callstack.
+
 ## 3.0.0
 
 Changed formatting to be more awk friendly
